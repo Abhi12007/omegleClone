@@ -12,7 +12,7 @@ export default function App() {
   const localStreamRef = useRef(null);
 
   const [name, setName] = useState("");
-  const [gender, setGender] = useState("male"); 
+  const [gender, setGender] = useState("male");
   const [joined, setJoined] = useState(false);
   const [status, setStatus] = useState("init");
 
@@ -73,7 +73,7 @@ export default function App() {
     });
 
     socket.on("partner-left", () => {
-      cleanupCall(false); 
+      cleanupCall(false);
       setPartnerId(null);
       setPartnerInfo(null);
       setStatus("waiting");
@@ -90,19 +90,15 @@ export default function App() {
   }, [messages, typingIndicator]);
 
   async function startLocalStream() {
-    try {
-      if (localStreamRef.current) return localStreamRef.current;
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localStreamRef.current = s;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = s;
-        localVideoRef.current.muted = true;
-        localVideoRef.current.play().catch(() => {});
-      }
-      return s;
-    } catch (err) {
-      console.error("Camera error:", err);
+    if (localStreamRef.current) return localStreamRef.current;
+    const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStreamRef.current = s;
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = s;
+      localVideoRef.current.muted = true;
+      localVideoRef.current.play().catch(() => {});
     }
+    return s;
   }
 
   async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
@@ -157,7 +153,6 @@ export default function App() {
       localStreamRef.current.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     }
-    // Keep my self-view alive unless full stop
     if (localStreamRef.current && localVideoRef.current) {
       localVideoRef.current.srcObject = localStreamRef.current;
     }
@@ -166,7 +161,7 @@ export default function App() {
 
   function leaveAndNext() {
     if (partnerId) socket.emit("leave");
-    cleanupCall(false); 
+    cleanupCall(false);
     setPartnerId(null);
     setPartnerInfo(null);
     socket.emit("join", { name, gender });
@@ -175,7 +170,7 @@ export default function App() {
 
   function stopAndLeave() {
     if (partnerId) socket.emit("leave");
-    cleanupCall(true); 
+    cleanupCall(true);
     setJoined(false);
     setPartnerId(null);
     setPartnerInfo(null);
@@ -223,13 +218,11 @@ export default function App() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-
           <div className="gender-vertical">
             <div className={`gender-option-vertical ${gender === "male" ? "active" : ""}`} onClick={() => setGender("male")}>♂️ Male</div>
             <div className={`gender-option-vertical ${gender === "female" ? "active" : ""}`} onClick={() => setGender("female")}>♀️ Female</div>
             <div className={`gender-option-vertical ${gender === "other" ? "active" : ""}`} onClick={() => setGender("other")}>⚧️ Other</div>
           </div>
-
           <button className="primary" onClick={async () => {
             await startLocalStream();
             socket.emit("join", { name, gender });
@@ -245,10 +238,13 @@ export default function App() {
       <div className="topbar">Online: {onlineCount} • Status: {status}</div>
 
       <div className="content">
-        <div className="remote-area">
+        <div className="video-container">
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
           {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
           {partnerInfo && <div className="overlay highlight">{partnerInfo.name} ({partnerInfo.gender})</div>}
+
+          {/* Floating local video */}
+          <video ref={localVideoRef} className="local-video-floating" autoPlay muted playsInline />
 
           <div className="controls">
             <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic}>
@@ -266,26 +262,19 @@ export default function App() {
           </div>
         </div>
 
-        <div className="side-area">
-          <div className="local-card">
-            <video ref={localVideoRef} className="local-video" autoPlay muted playsInline />
-            <div className="overlay small highlight">{name} ({gender})</div>
+        <div className="chat-card">
+          <div className="chat-window" ref={chatWindowRef}>
+            {messages.map((m, i) => (
+              <div key={i} className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
+                {m.message}
+              </div>
+            ))}
+            {typingIndicator && <div className="typing">{typingIndicator}</div>}
           </div>
-
-          <div className="chat-card">
-            <div className="chat-window" ref={chatWindowRef}>
-              {messages.map((m, i) => (
-                <div key={i} className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
-                  {m.message}
-                </div>
-              ))}
-              {typingIndicator && <div className="typing">{typingIndicator}</div>}
-            </div>
-            <div className="chat-input modern">
-              <input value={input} onChange={handleTyping} placeholder="Type a message..."
-                     onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }} />
-              <button onClick={sendChat}>Send</button>
-            </div>
+          <div className="chat-input modern">
+            <input value={input} onChange={handleTyping} placeholder="Type a message..."
+                   onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }} />
+            <button onClick={sendChat}>Send</button>
           </div>
         </div>
       </div>
