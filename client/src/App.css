@@ -34,11 +34,40 @@ body,html,#root{
 .overlay.highlight{border:2px solid #22c55e;background:rgba(34,197,94,0.15);box-shadow:0 0 12px rgba(34,197,94,0.5)}
 
 .content{display:flex;gap:20px;align-items:flex-start;justify-content:center;margin-top:24px}
-.remote-area{position:relative;background:var(--surface);padding:12px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
-.remote-video{width:640px;height:480px;background:black;border-radius:10px;object-fit:cover}
+
+/* VIDEO LAYOUT */
+.video-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.remote-video {
+  width: 800px;
+  height: 500px;
+  background: black;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.local-video-floating {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  height: 140px;
+  border-radius: 8px;
+  border: 2px solid #22c55e;
+  object-fit: cover;
+  background: black;
+  box-shadow:0 4px 12px rgba(0,0,0,0.6);
+}
+
 .waiting-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:20px;opacity:.9}
 .overlay{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:8px;color:#fff}
 
+/* CONTROLS */
 .controls{display:flex;gap:20px;justify-content:center;margin-top:12px}
 .control{display:flex;flex-direction:column;align-items:center;font-size:22px;padding:6px 10px;border-radius:8px;border:0;background:rgba(255,255,255,0.06);cursor:pointer}
 .control.stop{background:#ff5252;color:#fff}
@@ -46,28 +75,24 @@ body,html,#root{
 .control.active{background:rgba(0,200,0,0.15);color:#00ff00}
 .control.inactive{background:rgba(200,0,0,0.15);color:#ff4d4d}
 
-.side-area{display:flex;flex-direction:column;gap:12px;width:260px;align-items:center}
-.local-card{position:relative;background:var(--glass);padding:8px;border-radius:10px;width:220px;display:flex;justify-content:center;align-items:center}
-.local-video{width:220px;height:165px;border-radius:8px;object-fit:cover;background:black;border:2px solid rgba(255,255,255,0.06)}
-.overlay.small{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);color:#fff;padding:4px 6px;border-radius:6px;font-size:13px}
+/* CHAT */
+.chat-card{width:260px;background:var(--glass);padding:8px;border-radius:10px;display:flex;flex-direction:column}
+.chat-window{height:400px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:6px}
 
-.chat-card{width:220px;background:var(--glass);padding:8px;border-radius:10px;display:flex;flex-direction:column}
-.chat-window{height:180px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:6px}
-
-.chat-bubble{max-width:80%;padding:8px 12px;border-radius:16px;font-size:14px;line-height:1.4;display:inline-block}
+.chat-bubble{max-width:80%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.4;display:inline-block}
 .chat-bubble.mine{background:#2563eb;color:white;align-self:flex-end;border-bottom-right-radius:4px}
 .chat-bubble.theirs{background:#333a4d;color:white;align-self:flex-start;border-bottom-left-radius:4px}
 .typing{font-style:italic;color:#94a3b8;font-size:14px}
 
 /* modern chat input */
 .chat-input.modern{display:flex;gap:8px;margin-top:8px;border:2px solid #22c55e;border-radius:8px;padding:4px;background:rgba(34,197,94,0.1);box-shadow:0 0 8px rgba(34,197,94,0.5)}
-.chat-input.modern input{flex:1;padding:8px;border:0;background:transparent;color:#fff;outline:none}
-.chat-input.modern button{padding:8px 12px;border-radius:6px;background:#22c55e;color:#fff;font-weight:600;cursor:pointer;border:0;transition:0.2s}
+.chat-input.modern input{flex:1;padding:10px;border:0;background:transparent;color:#fff;outline:none;font-size:14px}
+.chat-input.modern button{padding:10px 16px;border-radius:6px;background:#22c55e;color:#fff;font-weight:600;cursor:pointer;border:0;transition:0.2s}
 .chat-input.modern button:hover{background:#16a34a}
 
+/* RESPONSIVE */
 @media (max-width:1100px){
-  .remote-video{width:480px;height:360px}
+  .remote-video{width:480px;height:320px}
   .content{flex-direction:column;align-items:center}
-  .side-area{width:100%}
-  .local-card,.chat-card{width:320px}
+  .chat-card{width:100%;max-width:400px}
 }
