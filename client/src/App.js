@@ -28,86 +28,59 @@ export default function App() {
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
 
-  const isWaitingRef = useRef(false);
   const chatWindowRef = useRef(null);
 
   useEffect(() => {
     socket.on("online-count", (c) => setOnlineCount(c));
     socket.on("online-users", (c) => setOnlineCount(c));
 
-    socket.on("waiting", () => {
-      setStatus("waiting");
-      isWaitingRef.current = true;
-    });
+    socket.on("waiting", () => setStatus("waiting"));
 
-    socket.on("paired", ({ partnerId, initiator, partnerInfo }) => {
+    socket.on("paired", async ({ partnerId, initiator, partnerInfo }) => {
       setPartnerId(partnerId);
       setPartnerInfo(partnerInfo || { name: "Stranger", gender: "other" });
       setStatus("paired");
-      isWaitingRef.current = false;
-      startLocalStream().then(() => createPeerConnection(partnerId, initiator)).catch(() => {});
+      await startLocalStream();
+      await createPeerConnection(partnerId, initiator);
     });
 
     socket.on("offer", async ({ from, sdp }) => {
-      if (!pcRef.current) {
-        await startLocalStream();
-        await createPeerConnection(from, false, sdp);
-      } else {
-        try {
-          await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
-        } catch (e) {}
-      }
+      await startLocalStream();
+      await createPeerConnection(from, false, sdp);
     });
 
     socket.on("answer", async ({ from, sdp }) => {
-      try {
-        if (pcRef.current) {
-          await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
-          setStatus("in-call");
-        }
-      } catch (e) {}
+      if (pcRef.current) {
+        await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+        setStatus("in-call");
+      }
     });
 
     socket.on("ice-candidate", async ({ from, candidate }) => {
-      try {
-        if (candidate && pcRef.current) {
-          await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-        }
-      } catch (e) {}
+      if (candidate && pcRef.current) {
+        await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+      }
     });
 
     socket.on("chat-message", ({ fromName, message }) => {
       setTypingIndicator("");
-      setMessages((prev) => [...prev, { from: fromName || "Stranger", message }]);
+      setMessages((prev) => [...prev, { from: fromName || "Stranger", message, mine: false }]);
     });
 
     socket.on("typing", ({ fromName }) => {
       setTypingIndicator(`${fromName || "Stranger"} is typing...`);
-      setTimeout(() => setTypingIndicator(""), 2000); // clear after 2s
+      setTimeout(() => setTypingIndicator(""), 2000);
     });
 
     socket.on("partner-left", () => {
-      cleanupCall(false); // keep camera on
+      cleanupCall(false); // don't stop my camera
       setPartnerId(null);
       setPartnerInfo(null);
       setStatus("waiting");
-      if (name && gender) {
-        socket.emit("join", { name, gender });
-      }
+      if (name && gender) socket.emit("join", { name, gender });
     });
 
-    return () => {
-      socket.off("online-count");
-      socket.off("online-users");
-      socket.off("waiting");
-      socket.off("paired");
-      socket.off("offer");
-      socket.off("answer");
-      socket.off("ice-candidate");
-      socket.off("chat-message");
-      socket.off("typing");
-      socket.off("partner-left");
-    };
+    return () => socket.removeAllListeners();
   }, [name, gender]);
 
   useEffect(() => {
@@ -118,29 +91,20 @@ export default function App() {
 
   async function startLocalStream() {
     if (localStreamRef.current) return localStreamRef.current;
-    try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localStreamRef.current = s;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = s;
-        localVideoRef.current.play().catch(() => {});
-      }
-      s.getAudioTracks().forEach((t) => (t.enabled = micOn));
-      s.getVideoTracks().forEach((t) => (t.enabled = camOn));
-      return s;
-    } catch (err) {
-      console.error("getUserMedia error", err);
-      throw err;
+    const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStreamRef.current = s;
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = s;
+      localVideoRef.current.muted = true;
+      localVideoRef.current.play().catch(() => {});
     }
+    return s;
   }
 
   async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
-    if (pcRef.current) {
-      try { pcRef.current.close(); } catch {}
-      pcRef.current = null;
-    }
+    if (pcRef.current) pcRef.current.close();
 
-    const config = {
+    const pc = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         {
@@ -149,55 +113,39 @@ export default function App() {
           credential: "tN/jre4jo0Rpoi0z5MXgby3QAqo=",
         },
       ],
-    };
-
-    const pc = new RTCPeerConnection(config);
+    });
     pcRef.current = pc;
 
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
         remoteVideoRef.current.muted = false;
-        remoteVideoRef.current.volume = 1;
         remoteVideoRef.current.play().catch(() => {});
       }
-      setStatus("in-call");
     };
 
     pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        socket.emit("ice-candidate", { to: partnerSocketId, candidate: e.candidate });
-      }
+      if (e.candidate) socket.emit("ice-candidate", { to: partnerSocketId, candidate: e.candidate });
     };
 
-    const localStream = localStreamRef.current;
-    if (localStream) {
-      localStream.getTracks().forEach((track) => {
-        try {
-          pc.addTrack(track, localStream);
-        } catch {}
-      });
-    }
+    const localStream = await startLocalStream();
+    localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
     if (initiator) {
-      try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit("offer", { to: partnerSocketId, sdp: pc.localDescription });
-      } catch (e) {}
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit("offer", { to: partnerSocketId, sdp: pc.localDescription });
     } else if (remoteOffer) {
-      try {
-        await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit("answer", { to: partnerSocketId, sdp: pc.localDescription });
-      } catch (e) {}
+      await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit("answer", { to: partnerSocketId, sdp: pc.localDescription });
     }
   }
 
-  function cleanupCall(stopCamera = true) {
+  function cleanupCall(stopCamera = false) {
     if (pcRef.current) {
-      try { pcRef.current.close(); } catch {}
+      pcRef.current.close();
       pcRef.current = null;
     }
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
@@ -208,40 +156,22 @@ export default function App() {
     setMessages([]);
   }
 
-  async function handleJoin() {
-    if (!name || !gender) {
-      alert("Enter name and choose a gender.");
-      return;
-    }
-    try {
-      await startLocalStream();
-      if (!isWaitingRef.current) {
-        socket.emit("join", { name, gender });
-        isWaitingRef.current = true;
-        setStatus("joining");
-      }
-      setJoined(true);
-    } catch (e) {}
-  }
-
   function leaveAndNext() {
     if (partnerId) socket.emit("leave");
-    cleanupCall(false); // keep camera
+    cleanupCall(false); // keep my camera
     setPartnerId(null);
     setPartnerInfo(null);
-    isWaitingRef.current = true;
     socket.emit("join", { name, gender });
     setStatus("waiting");
   }
 
   function stopAndLeave() {
     if (partnerId) socket.emit("leave");
-    cleanupCall(true); // stop camera
+    cleanupCall(true); // fully stop camera
     setJoined(false);
     setPartnerId(null);
     setPartnerInfo(null);
     setStatus("init");
-    isWaitingRef.current = false;
     socket.emit("leave");
   }
 
@@ -263,16 +193,14 @@ export default function App() {
     if (!input.trim()) return;
     if (partnerId) {
       socket.emit("chat-message", { to: partnerId, message: input });
-      setMessages((prev) => [...prev, { from: "Me", message: input }]);
+      setMessages((prev) => [...prev, { from: "Me", message: input, mine: true }]);
       setInput("");
     }
   }
 
   function handleTyping(e) {
     setInput(e.target.value);
-    if (partnerId) {
-      socket.emit("typing", { to: partnerId, fromName: name });
-    }
+    if (partnerId) socket.emit("typing", { to: partnerId, fromName: name });
   }
 
   if (!joined) {
@@ -288,31 +216,17 @@ export default function App() {
             onChange={(e) => setName(e.target.value)}
           />
 
-          {/* Vertical Gender Selection */}
           <div className="gender-vertical">
-            <div
-              className={`gender-option-vertical ${gender === "male" ? "active" : ""}`}
-              onClick={() => setGender("male")}
-            >
-              ♂️ Male
-            </div>
-            <div
-              className={`gender-option-vertical ${gender === "female" ? "active" : ""}`}
-              onClick={() => setGender("female")}
-            >
-              ♀️ Female
-            </div>
-            <div
-              className={`gender-option-vertical ${gender === "other" ? "active" : ""}`}
-              onClick={() => setGender("other")}
-            >
-              ⚧️ Other
-            </div>
+            <div className={`gender-option-vertical ${gender === "male" ? "active" : ""}`} onClick={() => setGender("male")}>♂️ Male</div>
+            <div className={`gender-option-vertical ${gender === "female" ? "active" : ""}`} onClick={() => setGender("female")}>♀️ Female</div>
+            <div className={`gender-option-vertical ${gender === "other" ? "active" : ""}`} onClick={() => setGender("other")}>⚧️ Other</div>
           </div>
 
-          <button className="primary" onClick={handleJoin}>
-            Connect to a stranger
-          </button>
+          <button className="primary" onClick={async () => {
+            await startLocalStream();
+            socket.emit("join", { name, gender });
+            setJoined(true);
+          }}>Connect to a stranger</button>
         </div>
       </div>
     );
@@ -330,16 +244,16 @@ export default function App() {
 
           <div className="controls">
             <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic}>
-              🎤
+              🎤<div className="label">Mute</div>
             </button>
             <button className={`control ${camOn ? "active" : "inactive"}`} onClick={toggleCam}>
-              📷
+              📷<div className="label">Camera</div>
             </button>
             <button className="control active" onClick={leaveAndNext}>
-              ➡️
+              ➡️<div className="label">Next</div>
             </button>
             <button className="control stop" onClick={stopAndLeave}>
-              ⛔
+              ⛔<div className="label">Stop</div>
             </button>
           </div>
         </div>
@@ -353,16 +267,15 @@ export default function App() {
           <div className="chat-card">
             <div className="chat-window" ref={chatWindowRef}>
               {messages.map((m, i) => (
-                <div key={i}><strong>{m.from}:</strong> {m.message}</div>
+                <div key={i} className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
+                  {m.message}
+                </div>
               ))}
               {typingIndicator && <div className="typing">{typingIndicator}</div>}
             </div>
             <div className="chat-input">
-              <input
-                value={input}
-                onChange={handleTyping}
-                placeholder="Type a message..."
-              />
+              <input value={input} onChange={handleTyping} placeholder="Type a message..." 
+                     onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }} />
               <button onClick={sendChat}>Send</button>
             </div>
           </div>
