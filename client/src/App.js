@@ -5,8 +5,7 @@ import "./App.css";
 
 const socket = io();
 
-// SVG icons (white by default). If inactive (false) mic/camera show a red slash.
-// Next: blue; Stop: red.
+// SVG icons
 function MicIcon({ active }) {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -15,11 +14,7 @@ function MicIcon({ active }) {
         <path d="M19 11v1a7 7 0 0 1-14 0v-1" />
         <path d="M12 19v3" />
       </g>
-      {!active && (
-        <g>
-          <line x1="4" y1="20" x2="20" y2="4" stroke="#ff4040" strokeWidth="2.2" strokeLinecap="round" />
-        </g>
-      )}
+      {!active && (<line x1="4" y1="20" x2="20" y2="4" stroke="#ff4040" strokeWidth="2.2" strokeLinecap="round" />)}
     </svg>
   );
 }
@@ -31,11 +26,7 @@ function CameraIcon({ active }) {
         <rect x="3.5" y="6" width="13" height="9" rx="2" />
         <path d="M17.5 8l4-2v11l-4-2" />
       </g>
-      {!active && (
-        <g>
-          <line x1="4" y1="20" x2="20" y2="4" stroke="#ff4040" strokeWidth="2.2" strokeLinecap="round" />
-        </g>
-      )}
+      {!active && (<line x1="4" y1="20" x2="20" y2="4" stroke="#ff4040" strokeWidth="2.2" strokeLinecap="round" />)}
     </svg>
   );
 }
@@ -60,6 +51,15 @@ function StopIcon() {
   );
 }
 
+function ReloadIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M20 8v6h-6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 12a8 8 0 0114-5.3L20 8" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function App() {
   // refs
   const localVideoRef = useRef(null);
@@ -68,7 +68,7 @@ export default function App() {
   const localStreamRef = useRef(null);
   const remoteContainerRef = useRef(null);
 
-  // app state
+  // state
   const [name, setName] = useState("");
   const [gender, setGender] = useState("male");
   const [joined, setJoined] = useState(false);
@@ -77,22 +77,19 @@ export default function App() {
   const [partnerInfo, setPartnerInfo] = useState(null);
   const [onlineCount, setOnlineCount] = useState(0);
 
-  // chat
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [typingIndicator, setTypingIndicator] = useState("");
 
-  // controls
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
 
-  // store preferences when searching (persist across Next)
+  // store preferences for Next (preserved)
   const storedPrefsRef = useRef({ micOn: true, camOn: true, localPos: null });
 
-  // chat window ref
   const chatWindowRef = useRef(null);
 
-  // draggable preview state
+  // draggable preview
   const localSize = { w: 120, h: 80 };
   const [localPos, setLocalPos] = useState({ x: null, y: null });
   const draggingRef = useRef(false);
@@ -108,7 +105,6 @@ export default function App() {
       setPartnerId(partnerId);
       setPartnerInfo(partnerInfo || { name: "Stranger", gender: "other" });
       setStatus("paired");
-      // apply stored prefs for Next; if first connect (joined just became true from landing) then mic/cam were forced open in connect flow
       await startLocalStream();
       applyStoredPrefsToTracks();
       await createPeerConnection(partnerId, initiator);
@@ -146,7 +142,6 @@ export default function App() {
       setPartnerId(null);
       setPartnerInfo(null);
       setStatus("waiting");
-      // when partner left while we are searching, if stored prefs exist re-emit join to queue
       if (name && gender) socket.emit("join", { name, gender });
     });
 
@@ -157,15 +152,14 @@ export default function App() {
     if (chatWindowRef.current) chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
   }, [messages, typingIndicator]);
 
-  // default preview pos: top-right inside remote after layout
+  // default pos set on layout; top-right by default for initial connect
   useEffect(() => {
     function setDefault() {
       const cont = remoteContainerRef.current;
       if (!cont) return;
       const rect = cont.getBoundingClientRect();
       const x = rect.width - localSize.w - 16;
-      const y = 16; // top-right default
-      // if stored position exists (from storedPrefsRef), use it
+      const y = 16;
       const stored = storedPrefsRef.current.localPos;
       if (stored) {
         setLocalPos(stored);
@@ -184,8 +178,7 @@ export default function App() {
   // getUserMedia
   async function startLocalStream(forceEnable = false) {
     if (localStreamRef.current) {
-      // maybe re-enable tracks if needed
-      if (forceEnable && localStreamRef.current) {
+      if (forceEnable) {
         localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = true));
         localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = true));
         setMicOn(true);
@@ -197,7 +190,6 @@ export default function App() {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       localStreamRef.current = s;
-      // set tracks according to current state (micOn/camOn)
       s.getAudioTracks().forEach((t) => (t.enabled = micOn));
       s.getVideoTracks().forEach((t) => (t.enabled = camOn));
       if (localVideoRef.current) {
@@ -213,7 +205,6 @@ export default function App() {
   }
 
   function applyStoredPrefsToTracks() {
-    // if stream present, apply stored prefs
     if (!localStreamRef.current) return;
     const { micOn: storedMic, camOn: storedCam } = storedPrefsRef.current;
     if (typeof storedMic === "boolean") {
@@ -224,11 +215,9 @@ export default function App() {
       localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = storedCam));
       setCamOn(storedCam);
     }
-    // apply stored localPos if exist
     if (storedPrefsRef.current.localPos) setLocalPos(storedPrefsRef.current.localPos);
   }
 
-  // Peer connection
   async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
     if (pcRef.current) {
       try { pcRef.current.close(); } catch (e) {}
@@ -282,64 +271,59 @@ export default function App() {
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
 
     if (stopCamera && localStreamRef.current) {
-      // fully stop and clear local stream
       localStreamRef.current.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
       if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    } else {
-      // keep preview active, apply local stream back to preview
-      if (localStreamRef.current && localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
+    } else if (localStreamRef.current && localVideoRef.current) {
+      localVideoRef.current.srcObject = localStreamRef.current;
     }
-
     setMessages([]);
   }
 
-  // Actions: connect (initial), next, stop
+  // Connect flow: force mic/cam ON and default top-right
   async function handleConnect() {
-    // initial connect should open mic & camera (force on)
     setMicOn(true);
     setCamOn(true);
     storedPrefsRef.current.micOn = true;
     storedPrefsRef.current.camOn = true;
 
-    await startLocalStream(true); // force enable
-    // ensure stored position exists (top-right by default)
+    await startLocalStream(true);
+
+    // ensure default top-right
     const cont = remoteContainerRef.current;
-    if (cont && !storedPrefsRef.current.localPos) {
+    if (cont) {
       const rect = cont.getBoundingClientRect();
-      storedPrefsRef.current.localPos = { x: rect.width - localSize.w - 16, y: 16 };
-      setLocalPos(storedPrefsRef.current.localPos);
+      const pos = { x: rect.width - localSize.w - 16, y: 16 };
+      storedPrefsRef.current.localPos = pos;
+      setLocalPos(pos);
     }
+
     socket.emit("join", { name, gender });
     setJoined(true);
     setStatus("searching");
   }
 
+  // Next keeps prefs & position
   function handleNext() {
-    // keep prefs stored (micOn, camOn, localPos)
     storedPrefsRef.current.micOn = micOn;
     storedPrefsRef.current.camOn = camOn;
     storedPrefsRef.current.localPos = localPos;
-    // leave current if any
     if (partnerId) socket.emit("leave");
-    cleanupCall(false); // keep local camera running
+    cleanupCall(false);
     setPartnerId(null);
     setPartnerInfo(null);
     socket.emit("join", { name, gender });
     setStatus("searching");
   }
 
+  // Stop clears info and stored prefs
   function handleStop() {
-    // stop and erase info (per your request)
     if (partnerId) socket.emit("leave");
-    // fully stop media
     cleanupCall(true);
-    // clear stored prefs
     storedPrefsRef.current = { micOn: true, camOn: true, localPos: null };
     setMicOn(true);
     setCamOn(true);
     setLocalPos({ x: null, y: null });
-    // clear name/gender/joined
     setName("");
     setGender("male");
     setJoined(false);
@@ -349,11 +333,10 @@ export default function App() {
     socket.emit("leave");
   }
 
-  // Toggle mic/cam reliably
+  // Toggle mic/cam
   function toggleMic() {
     const s = localStreamRef.current;
     if (!s) {
-      // update stored pref so when stream starts it will honor this
       storedPrefsRef.current.micOn = !micOn;
       setMicOn(!micOn);
       return;
@@ -381,6 +364,56 @@ export default function App() {
     storedPrefsRef.current.camOn = willEnable;
   }
 
+  // reload local stream: reacquire and replace tracks in active pc
+  async function reloadLocalStream() {
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      // apply stored prefs
+      newStream.getAudioTracks().forEach((t) => (t.enabled = storedPrefsRef.current.micOn ?? true));
+      newStream.getVideoTracks().forEach((t) => (t.enabled = storedPrefsRef.current.camOn ?? true));
+
+      // update preview
+      localStreamRef.current = newStream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = newStream;
+        localVideoRef.current.muted = true;
+        await localVideoRef.current.play().catch(() => {});
+      }
+
+      // replace tracks on existing RTCPeerConnection
+      if (pcRef.current) {
+        const senders = pcRef.current.getSenders();
+        // replace audio
+        const audioTrack = newStream.getAudioTracks()[0];
+        const videoTrack = newStream.getVideoTracks()[0];
+
+        const audioSender = senders.find((s) => s.track && s.track.kind === "audio");
+        const videoSender = senders.find((s) => s.track && s.track.kind === "video");
+
+        if (audioSender && audioTrack) {
+          await audioSender.replaceTrack(audioTrack);
+        } else if (audioTrack) {
+          pcRef.current.addTrack(audioTrack, newStream);
+        }
+
+        if (videoSender && videoTrack) {
+          await videoSender.replaceTrack(videoTrack);
+        } else if (videoTrack) {
+          pcRef.current.addTrack(videoTrack, newStream);
+        }
+      }
+
+      // update UI flags
+      setMicOn(newStream.getAudioTracks().some((t) => t.enabled));
+      setCamOn(newStream.getVideoTracks().some((t) => t.enabled));
+      storedPrefsRef.current.micOn = micOn;
+      storedPrefsRef.current.camOn = camOn;
+    } catch (err) {
+      console.error("reloadLocalStream error", err);
+      alert("Unable to access camera/microphone. Check browser permissions.");
+    }
+  }
+
   // chat
   function sendChat() {
     if (!input.trim()) return;
@@ -395,7 +428,7 @@ export default function App() {
     if (partnerId) socket.emit("typing", { to: partnerId, fromName: name });
   }
 
-  // Dragging logic for local preview
+  // drag handlers - with constraint that preview can't go into bottom controls area
   function onLocalPointerDown(e) {
     e.preventDefault();
     draggingRef.current = true;
@@ -427,13 +460,11 @@ export default function App() {
     let nx = lx + (moveX - sx);
     let ny = ly + (moveY - sy);
 
-    // constrain within remote video and prevent overlapping the controls area.
-    // We'll assume controls area occupies bottom 120px of container (safe margin).
+    // constrain: don't overlap controls area (reserve bottom 120px)
     const controlsMargin = 120;
     nx = Math.max(6, Math.min(nx, cw - localSize.w - 6));
     ny = Math.max(6, Math.min(ny, ch - localSize.h - controlsMargin));
     setLocalPos({ x: nx, y: ny });
-    // Also update stored prefs while moving so Next remembers position
     storedPrefsRef.current.localPos = { x: nx, y: ny };
   }
 
@@ -443,35 +474,27 @@ export default function App() {
     window.removeEventListener("pointerup", onLocalPointerUp);
   }
 
-  // computed style for preview
   const previewStyle = {};
   if (localPos.x !== null && localPos.y !== null) {
     previewStyle.left = `${localPos.x}px`;
     previewStyle.top = `${localPos.y}px`;
-    previewStyle.right = "auto";
-    previewStyle.bottom = "auto";
     previewStyle.position = "absolute";
   } else {
     previewStyle.right = "16px";
-    previewStyle.bottom = "16px";
+    previewStyle.top = "16px";
     previewStyle.position = "absolute";
   }
 
-  // typing bubble component
   function TypingBubble() {
     if (!typingIndicator) return null;
     return (
       <div className="chat-bubble theirs typing-bubble">
-        <div className="dots">
-          <span /><span /><span />
-        </div>
+        <div className="dots"><span /><span /><span /></div>
       </div>
     );
   }
 
-  // Render
   if (!joined) {
-    // Landing view (no starfield here — restored to previous simpler look)
     return (
       <div className="page">
         <div className="center-card">
@@ -500,7 +523,6 @@ export default function App() {
   return (
     <div className="page">
       <div className="topbar">Online: {onlineCount} • Status: {status}</div>
-
       <div className="content">
         <div className="video-container" ref={remoteContainerRef}>
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
@@ -516,6 +538,21 @@ export default function App() {
             onPointerDown={onLocalPointerDown}
             style={previewStyle}
           />
+
+          {/* reload button positioned relative to small preview */}
+          <button
+            className="preview-reload"
+            onClick={reloadLocalStream}
+            style={{
+              left: localPos.x !== null ? `${localPos.x + localSize.w - 18}px` : undefined,
+              top: localPos.y !== null ? `${localPos.y - 10}px` : undefined,
+              right: localPos.x === null ? "8px" : undefined,
+              position: "absolute",
+            }}
+            title="Reload camera"
+          >
+            <ReloadIcon />
+          </button>
 
           <div className="controls centered">
             <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic} title={micOn ? "Mute" : "Unmute"}>
@@ -545,7 +582,6 @@ export default function App() {
             {messages.map((m, i) => (
               <div key={i} className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>{m.message}</div>
             ))}
-
             {typingIndicator && <TypingBubble />}
           </div>
 
