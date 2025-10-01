@@ -99,3 +99,125 @@ return (<div style={{textAlign:'center',padding:20,position:'relative'}}>
 </div>
 </div>);
 }
+
+
+
+// === Assistant-added: ensure audio+video, add ontrack handling, chat & identity ===
+(async function assistantAddedSetup(){
+  try {
+    if (!window.localStream) {
+      window.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const lv = document.getElementById('localVideo');
+      if (lv) lv.srcObject = window.localStream;
+    }
+  } catch(e) {
+    console.error('Assistant: getUserMedia error', e);
+  }
+
+  // createPeerConnection function if not exists
+  if (!window.createPeerConnection) {
+    window.createPeerConnection = function() {
+      const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+      window.pc = new RTCPeerConnection(config);
+      if (window.localStream) {
+        for (const t of window.localStream.getTracks()) {
+          window.pc.addTrack(t, window.localStream);
+        }
+      }
+      window.pc.ontrack = function(event) {
+        let remoteStream = null;
+        if (event.streams && event.streams[0]) remoteStream = event.streams[0];
+        else {
+          remoteStream = new MediaStream();
+          remoteStream.addTrack(event.track);
+        }
+        const rv = document.getElementById('remoteVideo');
+        if (rv) {
+          rv.srcObject = remoteStream;
+          // hide waiting overlay
+          const overlay = document.getElementById('remote-overlay');
+          if (overlay) overlay.style.display = 'none';
+          const ident = document.getElementById('remote-identity');
+          if (ident) ident.style.display = 'block';
+          rv.muted = false;
+          rv.play().catch(()=>{ /* autoplay may be blocked until user interacts */ });
+        }
+      };
+      window.pc.onicecandidate = function(e){
+        if (e.candidate && window.socket && window.currentRoom) {
+          window.socket.emit('ice-candidate', { toRoom: window.currentRoom, candidate: e.candidate });
+        }
+      };
+      window.pc.onconnectionstatechange = function(){
+        if (!window.pc) return;
+        if (window.pc.connectionState === 'disconnected' || window.pc.connectionState === 'failed' || window.pc.connectionState === 'closed') {
+          const overlay = document.getElementById('remote-overlay');
+          if (overlay) { overlay.style.display = 'flex'; overlay.textContent = 'Waiting for user'; }
+          const rv = document.getElementById('remoteVideo');
+          if (rv) rv.srcObject = null;
+          const ident = document.getElementById('remote-identity');
+          if (ident) ident.style.display = 'none';
+        }
+      };
+      return window.pc;
+    };
+  }
+
+  // Chat UI handlers
+  const chatMessages = document.getElementById('chat-messages');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+
+  function appendChatLine(name, message, isLocal){
+    if (!chatMessages) return;
+    const div = document.createElement('div');
+    div.className = 'chat-line';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.textContent = name + ':';
+    const textSpan = document.createElement('span');
+    textSpan.className = 'msg';
+    textSpan.textContent = ' ' + message;
+    div.appendChild(nameSpan);
+    div.appendChild(textSpan);
+    if (isLocal) div.style.opacity = '0.85';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  if (chatForm && chatSend) {
+    chatForm.addEventListener('submit', function(e){ e.preventDefault(); const txt = chatInput.value.trim(); if (!txt) return; const name = window.localDisplayName || 'You'; if (window.socket && window.currentRoom) window.socket.emit('chat-message',{ toRoom: window.currentRoom, name, message: txt }); appendChatLine(name, txt, true); chatInput.value=''; });
+    chatSend.addEventListener('click', function(){ chatForm.dispatchEvent(new Event('submit')); });
+  }
+
+  // Handle incoming chat
+  if (window.socket) {
+    window.socket.on('chat-message', function(data){
+      appendChatLine(data.name || 'Stranger', data.message || '');
+    });
+    window.socket.on('stranger-identity', function(data){
+      const n = document.getElementById('remote-name');
+      const g = document.getElementById('remote-gender');
+      if (n) n.textContent = data.name || 'Stranger';
+      if (g) g.textContent = data.gender || '';
+      const ident = document.getElementById('remote-identity');
+      if (ident) ident.style.display = 'block';
+      const overlay = document.getElementById('remote-overlay');
+      if (overlay) overlay.style.display = 'none';
+    });
+    window.socket.on('ice-candidate', async function(data){
+      if (window.pc && data && data.candidate) {
+        try { await window.pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e){ console.error('Error adding ice candidate', e); }
+      }
+    });
+  }
+
+  // send identity helper
+  window.sendIdentity = function(toRoom){
+    if (window.socket) {
+      window.socket.emit('identity', { toRoom, name: window.localDisplayName || 'Stranger', gender: window.localGender || '' });
+    }
+  };
+
+})();
