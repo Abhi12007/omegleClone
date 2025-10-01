@@ -89,6 +89,13 @@ body,html,#root{
 }
 .local-video-floating:active{cursor:grabbing}
 
+/* reload button for preview */
+.preview-reload{
+  width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;z-index:6;color:#fff;cursor:pointer;
+  transition:transform .12s,box-shadow .12s;
+}
+.preview-reload:hover{transform:scale(1.06);box-shadow:0 8px 20px rgba(0,0,0,0.5)}
+
 /* green glow overlay */
 .green-glow{
   border:2px solid var(--green);
@@ -111,7 +118,22 @@ body,html,#root{
 .control .label{font-size:12px;color:#e6eef8}
 .control.active{box-shadow:0 8px 20px rgba(34,197,94,0.12)}
 .control.inactive{opacity:0.75;filter:grayscale(.15)}
-.control.next svg { filter: drop-shadow(0 4px 8px rgba(30,58,138,0.18)); }
+
+/* Next button glow (blue) */
+.control.next {
+  position:relative;
+}
+.control.next::before{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:12px;
+  box-shadow:0 0 28px rgba(37,99,235,0.28);
+  opacity:0.9;
+  transition:opacity .3s, transform .28s;
+  z-index:-1;
+}
+.control.next:hover::before{transform:scale(1.03);opacity:1;}
 
 /* chat */
 .chat-card{width:300px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;display:flex;flex-direction:column;gap:10px;align-items:stretch;z-index:3}
