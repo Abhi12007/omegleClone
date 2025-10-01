@@ -1,4 +1,5 @@
-/* client/src/App.css - clean, modern look */
+/* client/src/App.css - Modern UI */
+
 :root{
   --bg: #0f1724;
   --card: #0b1220;
@@ -89,6 +90,15 @@ body,html,#root{
   box-shadow: 0 0 12px rgba(37,99,235,0.5);
 }
 
+/* highlight for names (same style as gender) */
+.overlay.highlight,
+.overlay.small.highlight {
+  border: 2px solid #2563eb;
+  background: rgba(37,99,235,0.2);
+  box-shadow: 0 0 12px rgba(37,99,235,0.5);
+}
+
+/* layout */
 .content{display:flex;gap:20px;align-items:flex-start;justify-content:center;margin-top:24px}
 
 /* remote area */
@@ -137,10 +147,20 @@ body,html,#root{
   border-radius:8px;
   border:0;
   background:rgba(255,255,255,0.06);
-  color:#fff;
-  cursor:pointer
+  cursor:pointer;
+  font-size:20px;
 }
-.control.stop{background:#ff5252}
+.control.stop{background:#ff5252;color:#fff}
+
+/* active/inactive icons */
+.control.active {
+  background: rgba(0, 200, 0, 0.15);
+  color: #00ff00;
+}
+.control.inactive {
+  background: rgba(200, 0, 0, 0.15);
+  color: #ff4d4d;
+}
 
 /* side area: small local + chat */
 .side-area{
@@ -191,8 +211,33 @@ body,html,#root{
   overflow-y:auto;
   background:transparent;
   padding:6px;
-  color:#e6eef8
+  color:#e6eef8;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
 }
+
+/* typing indicator */
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* typing dots animation */
+.typing::after {
+  content: '...';
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
 .chat-input{
   display:flex;
   gap:6px;
