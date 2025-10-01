@@ -55,11 +55,28 @@ function StopIcon() {
   );
 }
 
+/* improved reload icon (thicker arrow + arrowhead) */
 function ReloadIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M20 8v6h-6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M4 12a8 8 0 0114-5.3L20 8" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      {/* main curved arrow */}
+      <path
+        d="M20 8a8 8 0 10-1.2 9.4"
+        stroke="#ffffff"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* arrowhead at the end */}
+      <path
+        d="M20 8v4h-4"
+        stroke="#ffffff"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
     </svg>
   );
 }
@@ -503,14 +520,13 @@ export default function App() {
             {!joined ? (
               /* ----- LANDING ----- */
               <div className="center-card">
-                <div className="landing-header">
-                  <div className="landing-title">
+                <div className="landing-header row">
+                  {/* banner on left */}
+                  <img src="/banner.png" alt="Banner" className="landing-banner" />
+                  <div className="landing-title text-right">
                     <h1>Omegle</h1>
                     <div className="sub">Online: {onlineCount}</div>
                   </div>
-
-                  {/* banner from public */}
-                  <img src="/banner.png" alt="Banner" className="landing-banner" />
                 </div>
 
                 <input className="input" placeholder="Enter your name" value={name} onChange={(e)=>setName(e.target.value)} />
@@ -567,72 +583,4 @@ export default function App() {
                       className="local-video-floating green-glow"
                       autoPlay muted playsInline
                       onPointerDown={onLocalPointerDown}
-                      style={previewStyle}
-                    />
-
-                    {/* reload button positioned relative to small preview
-                        ensure it stays within preview bounds by computing left/top inline */}
-                    <button
-                      className="preview-reload"
-                      onClick={reloadLocalStream}
-                      style={{
-                        left: localPos.x !== null ? `${localPos.x + localSize.w - 20}px` : undefined,
-                        top: localPos.y !== null ? `${localPos.y - 10}px` : undefined,
-                        right: localPos.x === null ? "18px" : undefined,
-                        position: "absolute",
-                      }}
-                      title="Reload camera"
-                    >
-                      <ReloadIcon />
-                    </button>
-
-                    <div className="controls centered">
-                      <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic} title={micOn ? "Mute" : "Unmute"}>
-                        <MicIcon active={micOn} />
-                        <div className="label">Mute</div>
-                      </button>
-
-                      <button className={`control ${camOn ? "active" : "inactive"}`} onClick={toggleCam} title={camOn ? "Camera Off" : "Camera On"}>
-                        <CameraIcon active={camOn} />
-                        <div className="label">Camera</div>
-                      </button>
-
-                      <button className="control next" onClick={handleNext} title="Next">
-                        <NextIcon />
-                        <div className="label">Next</div>
-                      </button>
-
-                      <button className="control stop" onClick={handleStop} title="Stop">
-                        <StopIcon />
-                        <div className="label">Stop</div>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="chat-card">
-                    <div className="chat-window" ref={chatWindowRef}>
-                      {messages.map((m, i) => (
-                        <div key={i} className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
-                          <strong style={{display: m.mine ? "none" : "inline"}}>{m.from}: </strong>
-                          {m.message}
-                        </div>
-                      ))}
-
-                      {typingIndicator && <TypingBubble />}
-                    </div>
-
-                    <div className="chat-input modern">
-                      <button className="plus-btn" title="Open extras">＋</button>
-                      <input value={input} onChange={handleTyping} placeholder="Type your message" onKeyDown={(e)=>{ if(e.key==="Enter") sendChat(); }} />
-                      <button onClick={sendChat}>Send</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        } />
-      </Routes>
-    </Router>
-  );
-}
+                      style={
