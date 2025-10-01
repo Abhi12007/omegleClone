@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
-import banner from "./banner.png"; // <-- place your graffiti image in client/src/ as banner.png
 
 const socket = io();
 
@@ -182,15 +181,17 @@ export default function App() {
   function toggleMic() {
     const s = localStreamRef.current;
     if (!s) return;
-    s.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
-    setMicOn((v) => !v);
+    const enabled = s.getAudioTracks().some((t) => t.enabled);
+    s.getAudioTracks().forEach((t) => (t.enabled = !enabled));
+    setMicOn(!enabled);
   }
 
   function toggleCam() {
     const s = localStreamRef.current;
     if (!s) return;
-    s.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
-    setCamOn((v) => !v);
+    const enabled = s.getVideoTracks().some((t) => t.enabled);
+    s.getVideoTracks().forEach((t) => (t.enabled = !enabled));
+    setCamOn(!enabled);
   }
 
   function sendChat() {
@@ -211,27 +212,19 @@ export default function App() {
     return (
       <div className="page">
         <div className="center-card">
-          <div className="landing-header">
-            <img src={banner} alt="Banner" className="landing-banner" />
-            <div className="landing-title">
-              <h1>Omegle</h1>
-              <div className="sub">Online: {onlineCount}</div>
-            </div>
-          </div>
-
+          <h1>Omegle</h1>
+          <div className="sub">Online: {onlineCount}</div>
           <input
             className="input"
             placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-
           <div className="gender-vertical">
             <div className={`gender-option-vertical ${gender === "male" ? "active" : ""}`} onClick={() => setGender("male")}>♂️ Male</div>
             <div className={`gender-option-vertical ${gender === "female" ? "active" : ""}`} onClick={() => setGender("female")}>♀️ Female</div>
             <div className={`gender-option-vertical ${gender === "other" ? "active" : ""}`} onClick={() => setGender("other")}>⚧️ Other</div>
           </div>
-
           <button className="primary" onClick={async () => {
             await startLocalStream();
             socket.emit("join", { name, gender });
@@ -245,16 +238,13 @@ export default function App() {
   return (
     <div className="page">
       <div className="topbar">Online: {onlineCount} • Status: {status}</div>
-
       <div className="content">
         <div className="video-container">
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
           {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
-          {partnerInfo && <div className="overlay highlight">{partnerInfo.name} ({partnerInfo.gender})</div>}
-
-          <video ref={localVideoRef} className="local-video-floating" autoPlay muted playsInline />
-
-          <div className="controls">
+          {partnerInfo && <div className="overlay green-glow">{partnerInfo.name} ({partnerInfo.gender})</div>}
+          <video ref={localVideoRef} className="local-video-floating green-glow" autoPlay muted playsInline />
+          <div className="controls center">
             <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic}>
               🎤<div className="label">Mute</div>
             </button>
@@ -269,7 +259,6 @@ export default function App() {
             </button>
           </div>
         </div>
-
         <div className="chat-card">
           <div className="chat-window" ref={chatWindowRef}>
             {messages.map((m, i) => (
