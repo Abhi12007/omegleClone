@@ -12,7 +12,7 @@ export default function App() {
   const localStreamRef = useRef(null);
 
   const [name, setName] = useState("");
-  const [gender, setGender] = useState("male"); // default male
+  const [gender, setGender] = useState("male"); 
   const [joined, setJoined] = useState(false);
   const [status, setStatus] = useState("init");
 
@@ -73,7 +73,7 @@ export default function App() {
     });
 
     socket.on("partner-left", () => {
-      cleanupCall(false); // don't stop my camera
+      cleanupCall(false); 
       setPartnerId(null);
       setPartnerInfo(null);
       setStatus("waiting");
@@ -90,15 +90,19 @@ export default function App() {
   }, [messages, typingIndicator]);
 
   async function startLocalStream() {
-    if (localStreamRef.current) return localStreamRef.current;
-    const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localStreamRef.current = s;
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = s;
-      localVideoRef.current.muted = true;
-      localVideoRef.current.play().catch(() => {});
+    try {
+      if (localStreamRef.current) return localStreamRef.current;
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = s;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = s;
+        localVideoRef.current.muted = true;
+        localVideoRef.current.play().catch(() => {});
+      }
+      return s;
+    } catch (err) {
+      console.error("Camera error:", err);
     }
-    return s;
   }
 
   async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
@@ -153,12 +157,16 @@ export default function App() {
       localStreamRef.current.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     }
+    // Keep my self-view alive unless full stop
+    if (localStreamRef.current && localVideoRef.current) {
+      localVideoRef.current.srcObject = localStreamRef.current;
+    }
     setMessages([]);
   }
 
   function leaveAndNext() {
     if (partnerId) socket.emit("leave");
-    cleanupCall(false); // keep my camera
+    cleanupCall(false); 
     setPartnerId(null);
     setPartnerInfo(null);
     socket.emit("join", { name, gender });
@@ -167,7 +175,7 @@ export default function App() {
 
   function stopAndLeave() {
     if (partnerId) socket.emit("leave");
-    cleanupCall(true); // fully stop camera
+    cleanupCall(true); 
     setJoined(false);
     setPartnerId(null);
     setPartnerInfo(null);
@@ -273,8 +281,8 @@ export default function App() {
               ))}
               {typingIndicator && <div className="typing">{typingIndicator}</div>}
             </div>
-            <div className="chat-input">
-              <input value={input} onChange={handleTyping} placeholder="Type a message..." 
+            <div className="chat-input modern">
+              <input value={input} onChange={handleTyping} placeholder="Type a message..."
                      onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }} />
               <button onClick={sendChat}>Send</button>
             </div>
