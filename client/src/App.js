@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
+import banner from "./banner.png"; // <-- place your graffiti image in client/src/ as banner.png
 
 const socket = io();
 
@@ -209,20 +210,28 @@ export default function App() {
   if (!joined) {
     return (
       <div className="page">
-        <div className="card center-card">
-          <h1>Omegle Clone</h1>
-          <div className="sub">Online: {onlineCount}</div>
+        <div className="center-card">
+          <div className="landing-header">
+            <img src={banner} alt="Banner" className="landing-banner" />
+            <div className="landing-title">
+              <h1>Omegle</h1>
+              <div className="sub">Online: {onlineCount}</div>
+            </div>
+          </div>
+
           <input
             className="input"
-            placeholder="Your name"
+            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+
           <div className="gender-vertical">
             <div className={`gender-option-vertical ${gender === "male" ? "active" : ""}`} onClick={() => setGender("male")}>♂️ Male</div>
             <div className={`gender-option-vertical ${gender === "female" ? "active" : ""}`} onClick={() => setGender("female")}>♀️ Female</div>
             <div className={`gender-option-vertical ${gender === "other" ? "active" : ""}`} onClick={() => setGender("other")}>⚧️ Other</div>
           </div>
+
           <button className="primary" onClick={async () => {
             await startLocalStream();
             socket.emit("join", { name, gender });
@@ -243,7 +252,6 @@ export default function App() {
           {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
           {partnerInfo && <div className="overlay highlight">{partnerInfo.name} ({partnerInfo.gender})</div>}
 
-          {/* Floating local video */}
           <video ref={localVideoRef} className="local-video-floating" autoPlay muted playsInline />
 
           <div className="controls">
