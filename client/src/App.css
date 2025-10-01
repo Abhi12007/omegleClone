@@ -69,4 +69,5 @@ body,html,#root{
   .remote-video{width:480px;height:360px}
   .content{flex-direction:column;align-items:center}
   .side-area{width:100%}
-  .local-card,.chat-card{width:320px
+  .local-card,.chat-card{width:320px}
+}
