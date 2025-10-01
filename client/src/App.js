@@ -12,7 +12,7 @@ export default function App() {
   const localStreamRef = useRef(null);
 
   const [name, setName] = useState("");
-  const [gender, setGender] = useState("");
+  const [gender, setGender] = useState("male"); // default male selected
   const [joined, setJoined] = useState(false);
   const [status, setStatus] = useState("init");
 
@@ -83,7 +83,6 @@ export default function App() {
       setPartnerId(null);
       setPartnerInfo(null);
       setStatus("waiting");
-      // auto rejoin queue
       if (name && gender) {
         socket.emit("join", { name, gender });
       }
@@ -267,22 +266,22 @@ export default function App() {
             onChange={(e) => setName(e.target.value)}
           />
 
-          {/* Gender Selection Buttons */}
-          <div className="gender-select">
+          {/* Vertical Gender Selection */}
+          <div className="gender-vertical">
             <div
-              className={`gender-option ${gender === "male" ? "active" : ""}`}
+              className={`gender-option-vertical ${gender === "male" ? "active" : ""}`}
               onClick={() => setGender("male")}
             >
               ♂️ Male
             </div>
             <div
-              className={`gender-option ${gender === "female" ? "active" : ""}`}
+              className={`gender-option-vertical ${gender === "female" ? "active" : ""}`}
               onClick={() => setGender("female")}
             >
               ♀️ Female
             </div>
             <div
-              className={`gender-option ${gender === "other" ? "active" : ""}`}
+              className={`gender-option-vertical ${gender === "other" ? "active" : ""}`}
               onClick={() => setGender("other")}
             >
               ⚧️ Other
