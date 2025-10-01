@@ -32,8 +32,6 @@ io.on('connection', (socket) => {
     if (waitingQueue.length === 0) {
       waitingQueue.push(socket.id);
       socket.emit('waiting');
-      io.emit('online-count', io.engine.clientsCount);
-      io.emit('online-users', io.engine.clientsCount);
       return;
     }
 
@@ -57,20 +55,38 @@ io.on('connection', (socket) => {
     partners[peerId] = socket.id;
     partners[socket.id] = peerId;
 
-    io.to(peerId).emit('paired', { partnerId: socket.id, initiator: true, partnerInfo: userInfo[socket.id] });
-    io.to(socket.id).emit('paired', { partnerId: peerId, initiator: false, partnerInfo: userInfo[peerId] });
+    io.to(peerId).emit('paired', {
+      partnerId: socket.id,
+      initiator: true,
+      partnerInfo: userInfo[socket.id]
+    });
+    io.to(socket.id).emit('paired', {
+      partnerId: peerId,
+      initiator: false,
+      partnerInfo: userInfo[peerId]
+    });
   });
 
+  // signaling
   socket.on('offer', ({ to, sdp }) => { if (to) io.to(to).emit('offer', { from: socket.id, sdp }); });
   socket.on('answer', ({ to, sdp }) => { if (to) io.to(to).emit('answer', { from: socket.id, sdp }); });
   socket.on('ice-candidate', ({ to, candidate }) => { if (to) io.to(to).emit('ice-candidate', { from: socket.id, candidate }); });
 
+  // chat
   socket.on('chat-message', ({ to, message }) => {
     if (!to) return;
     const info = userInfo[socket.id] || { name: 'Stranger', gender: 'other' };
     io.to(to).emit('chat-message', { from: socket.id, fromName: info.name, message });
   });
 
+  // typing indicator
+  socket.on('typing', ({ to, fromName }) => {
+    if (to) {
+      io.to(to).emit('typing', { from: socket.id, fromName });
+    }
+  });
+
+  // leave
   socket.on('leave', () => {
     const partner = partners[socket.id];
     if (partner) {
@@ -93,7 +109,7 @@ io.on('connection', (socket) => {
     if (partner) {
       io.to(partner).emit('partner-left');
       removeFromQueue(partner);
-      waitingQueue.push(partner); // requeue partner
+      waitingQueue.push(partner);
       delete partners[partner];
       delete partners[socket.id];
     } else {
