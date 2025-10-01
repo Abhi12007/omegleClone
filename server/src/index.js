@@ -11,6 +11,23 @@ const waitingQueue = [];
 const partners = {};
 
 io.on('connection', (socket) => {
+
+  // Assistant-added: chat-message and identity handlers
+  socket.on('chat-message', (data) => {
+    if (!data || !data.toRoom || !data.message) return;
+    socket.to(data.toRoom).emit('chat-message', { name: data.name || 'Stranger', message: data.message, timestamp: Date.now() });
+  });
+
+  socket.on('identity', (data) => {
+    if (!data || !data.toRoom) return;
+    socket.to(data.toRoom).emit('stranger-identity', { name: data.name || 'Stranger', gender: data.gender || '' });
+  });
+
+  socket.on('ice-candidate', (data) => {
+    if (!data || !data.toRoom) return;
+    socket.to(data.toRoom).emit('ice-candidate', data);
+  });
+
   console.log('User connected:', socket.id);
   io.emit('online-count', io.engine.clientsCount);
 
