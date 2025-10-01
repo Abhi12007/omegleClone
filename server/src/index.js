@@ -9,29 +9,15 @@ const io = new Server(server, { cors: { origin: "*", methods: ["GET","POST"] } }
 
 const waitingQueue = [];
 const partners = {};
+const userInfo = {}; // socketId -> {name, gender}
 
 io.on('connection', (socket) => {
-
-  // Assistant-added: chat-message and identity handlers
-  socket.on('chat-message', (data) => {
-    if (!data || !data.toRoom || !data.message) return;
-    socket.to(data.toRoom).emit('chat-message', { name: data.name || 'Stranger', message: data.message, timestamp: Date.now() });
-  });
-
-  socket.on('identity', (data) => {
-    if (!data || !data.toRoom) return;
-    socket.to(data.toRoom).emit('stranger-identity', { name: data.name || 'Stranger', gender: data.gender || '' });
-  });
-
-  socket.on('ice-candidate', (data) => {
-    if (!data || !data.toRoom) return;
-    socket.to(data.toRoom).emit('ice-candidate', data);
-  });
-
   console.log('User connected:', socket.id);
   io.emit('online-count', io.engine.clientsCount);
 
-  socket.on('join', () => {
+  socket.on('join', (data) => {
+    // data: {name, gender}
+    userInfo[socket.id] = data || {name: 'Anonymous', gender: 'other'};
     if (partners[socket.id]) return;
     if (waitingQueue.length === 0) {
       waitingQueue.push(socket.id);
@@ -40,36 +26,48 @@ io.on('connection', (socket) => {
       const peerId = waitingQueue.shift();
       partners[peerId] = socket.id;
       partners[socket.id] = peerId;
-      io.to(peerId).emit('paired', { partnerId: socket.id, initiator: true });
-      io.to(socket.id).emit('paired', { partnerId: peerId, initiator: false });
+      // send partner info to both
+      io.to(peerId).emit('paired', { partnerId: socket.id, initiator: true, partnerInfo: userInfo[socket.id] });
+      io.to(socket.id).emit('paired', { partnerId: peerId, initiator: false, partnerInfo: userInfo[peerId] });
     }
   });
 
-  socket.on('offer', ({ to, sdp }) => { if(to) io.to(to).emit('offer',{from:socket.id,sdp}); });
-  socket.on('answer', ({ to, sdp }) => { if(to) io.to(to).emit('answer',{from:socket.id,sdp}); });
-  socket.on('ice-candidate', ({ to, candidate }) => { if(to) io.to(to).emit('ice-candidate',{from:socket.id,candidate}); });
+  socket.on('offer', ({ to, sdp }) => { if (to) io.to(to).emit('offer', { from: socket.id, sdp }); });
+  socket.on('answer', ({ to, sdp }) => { if (to) io.to(to).emit('answer', { from: socket.id, sdp }); });
+  socket.on('ice-candidate', ({ to, candidate }) => { if (to) io.to(to).emit('ice-candidate', { from: socket.id, candidate }); });
+
+  // chat
+  socket.on('chat-message', ({ to, message }) => {
+    if (to) {
+      // forward message and include sender's name
+      const info = userInfo[socket.id] || {name: 'Anonymous', gender: 'other'};
+      io.to(to).emit('chat-message', { from: socket.id, fromName: info.name, message });
+    }
+  });
 
   socket.on('leave', () => {
     const partner = partners[socket.id];
-    if(partner){ io.to(partner).emit('partner-left'); delete partners[partner]; }
-    else { const idx = waitingQueue.indexOf(socket.id); if(idx!==-1) waitingQueue.splice(idx,1); }
+    if (partner) { io.to(partner).emit('partner-left'); delete partners[partner]; }
+    else { const idx = waitingQueue.indexOf(socket.id); if (idx !== -1) waitingQueue.splice(idx,1); }
     delete partners[socket.id];
+    delete userInfo[socket.id];
     io.emit('online-count', io.engine.clientsCount);
   });
 
   socket.on('disconnect', () => {
     const partner = partners[socket.id];
-    if(partner){ io.to(partner).emit('partner-left'); delete partners[partner]; }
-    else { const idx = waitingQueue.indexOf(socket.id); if(idx!==-1) waitingQueue.splice(idx,1); }
+    if (partner) { io.to(partner).emit('partner-left'); delete partners[partner]; }
+    else { const idx = waitingQueue.indexOf(socket.id); if (idx !== -1) waitingQueue.splice(idx,1); }
     delete partners[socket.id];
+    delete userInfo[socket.id];
     io.emit('online-count', io.engine.clientsCount);
   });
 });
 
-if(process.env.NODE_ENV==='production'){
-  app.use(express.static(path.join(__dirname,'../../client/build')));
-  app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'../../client/build','index.html')));
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../client/build')));
+  app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../../client/build', 'index.html')));
 }
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT,()=>console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
