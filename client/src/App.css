@@ -9,97 +9,150 @@
   --glass: rgba(255,255,255,0.04);
 }
 
+/* Page base */
 body,html,#root{
   height:100%;
   margin:0;
-  background:linear-gradient(180deg,#071227 0%, #081223 100%);
+  background: radial-gradient(ellipse at top left, rgba(3,7,23,0.85), rgba(4,9,20,1));
   font-family:Inter,system-ui,sans-serif;
   color:#e6eef8;
 }
+.page{min-height:100vh;padding:0;margin:0;overflow:hidden;position:relative}
 
-.page{min-height:100vh;padding:20px 24px;}
-.topbar{display:flex;justify-content:flex-end;padding:6px 12px;color:var(--muted);font-size:14px}
-
-.center-card{width:420px;margin:80px auto;padding:28px;background:var(--card);border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.6);text-align:center}
-.center-card h1{margin:0 0 12px;font-size:28px;color:white}
-.sub{color:var(--muted);margin-bottom:18px}
-
-.input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  margin: 8px 0;
-  background: rgba(255,255,255,0.06);
-  color: #fff;
-  font-size: 15px;
-  text-align: center;
-  transition: 0.2s;
-}
-.input:focus {
-  border: 2px solid var(--green);
-  background: rgba(34,197,94,0.15);
-  box-shadow: 0 0 12px rgba(34,197,94,0.5);
-  outline: none;
+/* Star canvas sits behind UI */
+.star-canvas{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
 }
 
-.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;padding:10px 16px;border-radius:8px;border:0;cursor:pointer;margin-top:12px;font-weight:600;box-shadow:0 6px 18px rgba(37,99,235,0.14)}
+/* Top bar */
+.topbar{position:relative;z-index:3;display:flex;justify-content:flex-end;padding:12px 24px;color:var(--muted);font-size:14px}
 
+/* Center card (landing) */
+.center-card{
+  position:relative;
+  z-index:2;
+  width: 460px;
+  margin: 80px auto;
+  padding: 28px;
+  background: linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,8,20,0.85));
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.8);
+  text-align:center;
+  backdrop-filter: blur(6px);
+}
+.landing-header{display:flex;align-items:center;justify-content:flex-start;margin-bottom:18px}
+.landing-title h1{margin:0 0 6px 0;font-size:28px;color:#fff}
+.landing-title .sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+/* Input styled like gender boxes (glowing green) */
+.input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:2px solid transparent;
+  margin:8px 0;
+  background:rgba(255,255,255,0.03);
+  color:#fff;
+  font-size:15px;
+  text-align:center;
+  transition:all .18s ease;
+}
+.input:focus{
+  border:2px solid var(--green);
+  background: rgba(34,197,94,0.08);
+  box-shadow:0 0 12px rgba(34,197,94,0.25);
+  outline:none;
+}
+.primary{
+  background: linear-gradient(90deg,var(--accent),var(--accent-2));
+  color:white;padding:10px 16px;border-radius:8px;border:0;cursor:pointer;margin-top:12px;font-weight:600;box-shadow:0 8px 28px rgba(37,99,235,0.12)
+}
 .gender-vertical{display:flex;flex-direction:column;gap:12px;margin:16px 0;align-items:center}
-.gender-option-vertical{width:160px;text-align:center;padding:12px;border-radius:8px;border:2px solid transparent;background:rgba(255,255,255,0.06);color:white;cursor:pointer;font-weight:500;transition:.2s}
-.gender-option-vertical.active{border:2px solid var(--green);background:rgba(34,197,94,0.15);box-shadow:0 0 12px rgba(34,197,94,0.5)}
+.gender-option-vertical{width:160px;text-align:center;padding:12px;border-radius:8px;border:2px solid transparent;background:rgba(255,255,255,0.03);color:white;cursor:pointer;font-weight:600;transition:.12s}
+.gender-option-vertical.active{border:2px solid var(--green);background:rgba(34,197,94,0.08);box-shadow:0 0 14px rgba(34,197,94,0.2)}
 
-.overlay.green-glow {
-  border: 2px solid var(--green);
-  background: rgba(34,197,94,0.2);
-  box-shadow: 0 0 12px rgba(34,197,94,0.8);
-}
+/* Main content area */
+.content{position:relative;z-index:2;display:flex;gap:20px;align-items:flex-start;justify-content:center;padding:24px}
 
-.content{display:flex;gap:20px;align-items:flex-start;justify-content:center;margin-top:24px}
-
+/* VIDEO LAYOUT */
 .video-container{position:relative;display:flex;flex-direction:column;align-items:center}
-.remote-video{width:800px;height:500px;background:black;border-radius:12px;object-fit:cover;position:relative}
+.remote-video{width:900px;height:520px;background:#000;border-radius:12px;object-fit:cover;box-shadow:0 14px 40px rgba(2,6,23,0.7);position:relative;z-index:2}
 
-/* Self video extreme bottom-right inside */
-.local-video-floating {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  width: 120px;
-  height: 85px;
-  border-radius: 6px;
-  border: 2px solid var(--green);
-  object-fit: cover;
-  background: black;
-  box-shadow: 0 0 12px rgba(34,197,94,0.8);
-  z-index: 5;
+/* Local small preview at extreme bottom-right inside remote */
+.local-video-floating{
+  position:absolute;
+  width:120px;
+  height:80px;
+  border-radius:8px;
+  border:2px solid var(--green);
+  object-fit:cover;
+  background:#000;
+  box-shadow:0 6px 18px rgba(34,197,94,0.18);
+  z-index:4;
+  touch-action:none; /* allows pointer dragging on mobile */
+  cursor:grab;
 }
 
-.waiting-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:20px;opacity:.9}
-.overlay{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:8px;color:#fff}
+/* while dragging */
+.local-video-floating:active{cursor:grabbing}
 
-/* Controls centered */
-.controls{display:flex;gap:20px;justify-content:center;margin-top:12px;width:100%;max-width:800px}
-.control{display:flex;flex-direction:column;align-items:center;font-size:22px;padding:6px 10px;border-radius:8px;border:0;background:rgba(255,255,255,0.06);cursor:pointer}
-.control.stop{background:#ff5252;color:#fff}
-.control .label{font-size:12px;margin-top:2px}
-.control.active{background:rgba(0,200,0,0.15);color:#00ff00}
-.control.inactive{background:rgba(200,0,0,0.15);color:#ff4d4d}
+/* Green glowing overlay around name/gender/small video */
+.green-glow{
+  border:2px solid var(--green);
+  background:linear-gradient(180deg, rgba(12,54,31,0.25), rgba(6,30,17,0.25));
+  box-shadow:0 0 18px rgba(34,197,94,0.22);
+  padding:6px 8px;
+  border-radius:8px;
+  color:#fff;
+}
 
-.chat-card{width:260px;background:var(--glass);padding:8px;border-radius:10px;display:flex;flex-direction:column}
-.chat-window{height:220px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:6px}
-.chat-bubble{max-width:80%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.4;display:inline-block}
-.chat-bubble.mine{background:#2563eb;color:white;align-self:flex-end;border-bottom-right-radius:4px}
-.chat-bubble.theirs{background:#333a4d;color:white;align-self:flex-start;border-bottom-left-radius:4px}
-.typing{font-style:italic;color:#94a3b8;font-size:14px}
+/* Waiting text in center of remote */
+.waiting-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:20px;opacity:.95;z-index:3}
+.overlay{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.45);padding:8px 10px;border-radius:8px;color:#fff;z-index:4}
 
-.chat-input.modern{display:flex;gap:8px;margin-top:8px;border:2px solid var(--green);border-radius:8px;padding:4px;background:rgba(34,197,94,0.1);box-shadow:0 0 8px rgba(34,197,94,0.5)}
-.chat-input.modern input{flex:1;padding:10px;border:0;background:transparent;color:#fff;outline:none;font-size:14px;text-align:left}
-.chat-input.modern button{padding:10px 16px;border-radius:6px;background:var(--green);color:#fff;font-weight:600;cursor:pointer;border:0;transition:0.2s}
+/* Controls centered under video */
+.controls.centered{display:flex;gap:22px;justify-content:center;margin-top:16px;width:100%;max-width:900px;z-index:4}
+.control{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;padding:8px;border-radius:10px;border:0;background:rgba(255,255,255,0.03);cursor:pointer;transition:transform .12s}
+.control:hover{transform:translateY(-4px)}
+.control.stop{background:linear-gradient(90deg,#ff5b5b,#ff3b3b);color:white}
+.control .label{font-size:12px;color:#e6eef8}
+.control.active{box-shadow:0 8px 20px rgba(34,197,94,0.12)}
+.control.inactive{opacity:0.75;filter:grayscale(.15)}
+
+/* Chat column */
+.chat-card{width:300px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;display:flex;flex-direction:column;gap:10px;align-items:stretch;z-index:3}
+.chat-window{height:200px;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+.chat-bubble{max-width:85%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.4;display:inline-block}
+.chat-bubble.mine{align-self:flex-end;background:linear-gradient(90deg,#2563eb,#06b6d4);color:white}
+.chat-bubble.theirs{align-self:flex-start;background:rgba(255,255,255,0.03);color:#e6eef8}
+
+/* Typing bubble uses "theirs" style but animated dots */
+.typing-bubble{display:flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:16px;background:rgba(255,255,255,0.03);width:80px}
+.typing-bubble .dots{display:flex;gap:6px;align-items:center}
+.typing-bubble .dots span{width:8px;height:8px;background:#9fbbe6;border-radius:50%;display:inline-block;opacity:0.3;animation:typing-dot 1s infinite}
+.typing-bubble .dots span:nth-child(2){animation-delay:0.12s}
+.typing-bubble .dots span:nth-child(3){animation-delay:0.24s}
+@keyframes typing-dot{
+  0%{opacity:0.25;transform:translateY(0)}
+  50%{opacity:1;transform:translateY(-5px)}
+  100%{opacity:0.25;transform:translateY(0)}
+}
+
+.typing{font-style:italic;color:#cbd5e1;font-size:13px}
+
+/* chat input modern */
+.chat-input.modern{display:flex;gap:8px;margin-top:6px;border:2px solid var(--green);border-radius:10px;padding:6px;background:linear-gradient(180deg, rgba(34,197,94,0.06), rgba(34,197,94,0.02))}
+.chat-input.modern input{flex:1;padding:10px;border:0;background:transparent;color:#fff;outline:none;border-radius:6px}
+.chat-input.modern button{padding:10px 14px;border-radius:8px;background:var(--green);font-weight:700;color:#002a12;border:0;cursor:pointer}
 .chat-input.modern button:hover{background:#16a34a}
 
+/* responsive */
 @media (max-width:1100px){
   .remote-video{width:480px;height:320px}
   .content{flex-direction:column;align-items:center}
-  .chat-card{width:100%;max-width:400px}
+  .chat-card{width:92%}
+  .center-card{width:92%;margin:24px auto}
 }
