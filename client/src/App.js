@@ -12,7 +12,7 @@ export default function App() {
   const localStreamRef = useRef(null);
 
   const [name, setName] = useState("");
-  const [gender, setGender] = useState("male"); // default male selected
+  const [gender, setGender] = useState("male"); // default male
   const [joined, setJoined] = useState(false);
   const [status, setStatus] = useState("init");
 
@@ -23,11 +23,13 @@ export default function App() {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [typingIndicator, setTypingIndicator] = useState("");
 
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
 
   const isWaitingRef = useRef(false);
+  const chatWindowRef = useRef(null);
 
   useEffect(() => {
     socket.on("online-count", (c) => setOnlineCount(c));
@@ -75,11 +77,17 @@ export default function App() {
     });
 
     socket.on("chat-message", ({ fromName, message }) => {
+      setTypingIndicator("");
       setMessages((prev) => [...prev, { from: fromName || "Stranger", message }]);
     });
 
+    socket.on("typing", ({ fromName }) => {
+      setTypingIndicator(`${fromName || "Stranger"} is typing...`);
+      setTimeout(() => setTypingIndicator(""), 2000); // clear after 2s
+    });
+
     socket.on("partner-left", () => {
-      cleanupCall();
+      cleanupCall(false); // keep camera on
       setPartnerId(null);
       setPartnerInfo(null);
       setStatus("waiting");
@@ -97,9 +105,16 @@ export default function App() {
       socket.off("answer");
       socket.off("ice-candidate");
       socket.off("chat-message");
+      socket.off("typing");
       socket.off("partner-left");
     };
   }, [name, gender]);
+
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [messages, typingIndicator]);
 
   async function startLocalStream() {
     if (localStreamRef.current) return localStreamRef.current;
@@ -121,7 +136,7 @@ export default function App() {
 
   async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
     if (pcRef.current) {
-      try { pcRef.current.close(); } catch (e) {}
+      try { pcRef.current.close(); } catch {}
       pcRef.current = null;
     }
 
@@ -180,13 +195,13 @@ export default function App() {
     }
   }
 
-  function cleanupCall() {
+  function cleanupCall(stopCamera = true) {
     if (pcRef.current) {
       try { pcRef.current.close(); } catch {}
       pcRef.current = null;
     }
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    if (localStreamRef.current) {
+    if (stopCamera && localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     }
@@ -211,7 +226,7 @@ export default function App() {
 
   function leaveAndNext() {
     if (partnerId) socket.emit("leave");
-    cleanupCall();
+    cleanupCall(false); // keep camera
     setPartnerId(null);
     setPartnerInfo(null);
     isWaitingRef.current = true;
@@ -221,7 +236,7 @@ export default function App() {
 
   function stopAndLeave() {
     if (partnerId) socket.emit("leave");
-    cleanupCall();
+    cleanupCall(true); // stop camera
     setJoined(false);
     setPartnerId(null);
     setPartnerInfo(null);
@@ -250,6 +265,13 @@ export default function App() {
       socket.emit("chat-message", { to: partnerId, message: input });
       setMessages((prev) => [...prev, { from: "Me", message: input }]);
       setInput("");
+    }
+  }
+
+  function handleTyping(e) {
+    setInput(e.target.value);
+    if (partnerId) {
+      socket.emit("typing", { to: partnerId, fromName: name });
     }
   }
 
@@ -304,32 +326,41 @@ export default function App() {
         <div className="remote-area">
           <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
           {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
-          {partnerInfo && <div className="overlay">{partnerInfo.name} ({partnerInfo.gender})</div>}
+          {partnerInfo && <div className="overlay highlight">{partnerInfo.name} ({partnerInfo.gender})</div>}
 
           <div className="controls">
-            <button className="control" onClick={toggleMic}>{micOn ? "Mute" : "Unmute"}</button>
-            <button className="control" onClick={toggleCam}>{camOn ? "Camera Off" : "Camera On"}</button>
-            <button className="control" onClick={leaveAndNext}>Next Stranger</button>
-            <button className="control stop" onClick={stopAndLeave}>Stop</button>
+            <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic}>
+              🎤
+            </button>
+            <button className={`control ${camOn ? "active" : "inactive"}`} onClick={toggleCam}>
+              📷
+            </button>
+            <button className="control active" onClick={leaveAndNext}>
+              ➡️
+            </button>
+            <button className="control stop" onClick={stopAndLeave}>
+              ⛔
+            </button>
           </div>
         </div>
 
         <div className="side-area">
           <div className="local-card">
             <video ref={localVideoRef} className="local-video" autoPlay muted playsInline />
-            <div className="overlay small">{name} ({gender})</div>
+            <div className="overlay small highlight">{name} ({gender})</div>
           </div>
 
           <div className="chat-card">
-            <div className="chat-window">
+            <div className="chat-window" ref={chatWindowRef}>
               {messages.map((m, i) => (
                 <div key={i}><strong>{m.from}:</strong> {m.message}</div>
               ))}
+              {typingIndicator && <div className="typing">{typingIndicator}</div>}
             </div>
             <div className="chat-input">
               <input
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleTyping}
                 placeholder="Type a message..."
               />
               <button onClick={sendChat}>Send</button>
