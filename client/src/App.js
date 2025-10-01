@@ -3,103 +3,100 @@ import io from "socket.io-client";
 
 const socket = io();
 
-function App() {
+export default function App() {
+  // refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-  const [localStream, setLocalStream] = useState(null);
-  const [pc, setPc] = useState(null);
+  const pcRef = useRef(null);
+  const localStreamRef = useRef(null);
 
+  // user / UI state
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [joined, setJoined] = useState(false);
+  const [status, setStatus] = useState("init"); // init, joining, waiting, paired, in-call
 
-  const [partnerInfo, setPartnerInfo] = useState(null);
   const [partnerId, setPartnerId] = useState(null);
+  const [partnerInfo, setPartnerInfo] = useState(null);
 
+  const [onlineCount, setOnlineCount] = useState(0);
+
+  // chat
   const [messages, setMessages] = useState([]);
-  const [chatMessage, setChatMessage] = useState("");
+  const [input, setInput] = useState("");
 
-  const [connected, setConnected] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(0);
-
+  // controls
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
 
-  // Join room with name/gender
-  const handleJoin = async () => {
-    if (!name || !gender) {
-      alert("Please enter name and gender.");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      setLocalStream(stream);
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-      socket.emit("join", { name, gender });
-      setJoined(true);
-    } catch (err) {
-      console.error("Media access error:", err);
-      alert("Could not access camera/microphone.");
-    }
-  };
-
   useEffect(() => {
-    socket.on("connect", () => {
-      setConnected(true);
-    });
-    socket.on("disconnect", () => {
-      setConnected(false);
-    });
-    socket.on("online-users", (count) => {
-      setOnlineUsers(count);
+    // online count (listen for both possible server event names)
+    socket.on("online-count", (c) => setOnlineCount(c));
+    socket.on("online-users", (c) => setOnlineCount(c));
+
+    socket.on("waiting", () => {
+      setStatus("waiting");
     });
 
-    socket.on("paired", ({ partnerId, partnerInfo, initiator }) => {
+    socket.on("paired", ({ partnerId, initiator, partnerInfo }) => {
       setPartnerId(partnerId);
-      setPartnerInfo(partnerInfo);
-      createPeerConnection(partnerId, initiator);
+      setPartnerInfo(partnerInfo || { name: "Stranger", gender: "other" });
+      setStatus("paired");
+      // ensure local stream exists, then setup pc
+      startLocalStream().then(() => {
+        createPeerConnection(partnerId, initiator);
+      }).catch(()=>{});
     });
 
     socket.on("offer", async ({ from, sdp }) => {
-      if (pc) return;
-      createPeerConnection(from, false, sdp);
-    });
-
-    socket.on("answer", async ({ sdp }) => {
-      if (pc) {
-        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+      // non-initiator will receive offer
+      if (!pcRef.current) {
+        await startLocalStream();
+        await createPeerConnection(from, false, sdp);
+      } else {
+        // if pc exists, directly set remote
+        try {
+          await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+        } catch (e) {/* ignore */}
       }
     });
 
-    socket.on("ice-candidate", async ({ candidate }) => {
+    socket.on("answer", async ({ from, sdp }) => {
       try {
-        if (pc && candidate) {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        if (pcRef.current) {
+          await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+          setStatus("in-call");
         }
       } catch (e) {
-        console.error("Error adding received ICE candidate", e);
+        console.error("answer handling error", e);
+      }
+    });
+
+    socket.on("ice-candidate", async ({ from, candidate }) => {
+      try {
+        if (candidate && pcRef.current) {
+          await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+      } catch (e) {
+        console.warn("addIceCandidate error", e);
       }
     });
 
     socket.on("chat-message", ({ fromName, message }) => {
-      setMessages((prev) => [...prev, { from: fromName, text: message }]);
+      setMessages((prev) => [...prev, { from: fromName || "Stranger", message }]);
     });
 
     socket.on("partner-left", () => {
-      cleanupConnection();
+      cleanupCall();
       setPartnerId(null);
       setPartnerInfo(null);
+      setStatus("waiting");
     });
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      socket.off("online-count");
+      socket.off("online-users");
+      socket.off("waiting");
       socket.off("paired");
       socket.off("offer");
       socket.off("answer");
@@ -107,11 +104,42 @@ function App() {
       socket.off("chat-message");
       socket.off("partner-left");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const createPeerConnection = async (partnerId, initiator, remoteOffer) => {
-    const newPc = new RTCPeerConnection({
+  // start local camera + mic
+  async function startLocalStream() {
+    if (localStreamRef.current) return localStreamRef.current;
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = s;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = s;
+        localVideoRef.current.play().catch(() => {});
+      }
+      // respect current mic/cam toggles
+      applyTrackToggles(s);
+      return s;
+    } catch (err) {
+      console.error("getUserMedia error", err);
+      throw err;
+    }
+  }
+
+  function applyTrackToggles(stream) {
+    if (!stream) return;
+    stream.getAudioTracks().forEach((t) => (t.enabled = micOn));
+    stream.getVideoTracks().forEach((t) => (t.enabled = camOn));
+  }
+
+  // Create RTCPeerConnection and handle signaling
+  async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
+    if (pcRef.current) {
+      // if an existing pc exists, close first
+      try { pcRef.current.close(); } catch (e) {}
+      pcRef.current = null;
+    }
+
+    const config = {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         {
@@ -120,227 +148,313 @@ function App() {
           credential: "tN/jre4jo0Rpoi0z5MXgby3QAqo=",
         },
       ],
-    });
-
-    newPc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit("ice-candidate", { to: partnerId, candidate: event.candidate });
-      }
     };
 
-    newPc.ontrack = (event) => {
+    const pc = new RTCPeerConnection(config);
+    pcRef.current = pc;
+
+    // when remote track arrives
+    pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
         remoteVideoRef.current.play().catch(() => {});
       }
+      setStatus("in-call");
     };
 
+    // ICE candidates -> send to partner
+    pc.onicecandidate = (ev) => {
+      if (ev.candidate) {
+        socket.emit("ice-candidate", { to: partnerSocketId, candidate: ev.candidate });
+      }
+    };
+
+    // add local tracks (if already obtained)
+    const localStream = localStreamRef.current;
     if (localStream) {
-      localStream.getTracks().forEach((track) => newPc.addTrack(track, localStream));
+      localStream.getTracks().forEach((track) => {
+        try {
+          pc.addTrack(track, localStream);
+        } catch (e) { /* ignore addTrack errors */ }
+      });
     }
 
+    // initiator creates offer
     if (initiator) {
-      const offer = await newPc.createOffer();
-      await newPc.setLocalDescription(offer);
-      socket.emit("offer", { to: partnerId, sdp: offer });
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("offer", { to: partnerSocketId, sdp: pc.localDescription });
+      } catch (e) {
+        console.error("createOffer error", e);
+      }
     } else if (remoteOffer) {
-      await newPc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
-      const answer = await newPc.createAnswer();
-      await newPc.setLocalDescription(answer);
-      socket.emit("answer", { to: partnerId, sdp: answer });
+      // non-initiator with offer already provided
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit("answer", { to: partnerSocketId, sdp: pc.localDescription });
+      } catch (e) {
+        console.error("handle remote offer error", e);
+      }
     }
+  }
 
-    setPc(newPc);
-  };
-
-  const cleanupConnection = () => {
-    if (pc) {
-      pc.close();
-      setPc(null);
+  // cleanup tracks and pc
+  function cleanupCall() {
+    if (pcRef.current) {
+      try { pcRef.current.close(); } catch (e) {}
+      pcRef.current = null;
     }
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
     }
-  };
-
-  const handleSendMessage = () => {
-    if (chatMessage.trim() && partnerId) {
-      socket.emit("chat-message", { to: partnerId, message: chatMessage });
-      setMessages((prev) => [...prev, { from: "Me", text: chatMessage }]);
-      setChatMessage("");
+    // stop local tracks but keep local stream for re-join? We'll stop when leaving fully
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
     }
-  };
+    setMessages([]);
+  }
 
-  const handleStop = () => {
-    cleanupConnection();
+  // Join button handler (landing -> join queue)
+  async function handleJoin() {
+    if (!name || !gender) {
+      alert("Enter name and choose a gender.");
+      return;
+    }
+    try {
+      await startLocalStream();
+      socket.emit("join", { name, gender });
+      setJoined(true);
+      setStatus("joining");
+    } catch (e) {
+      // user denied; do nothing
+    }
+  }
+
+  // Leave current partner and immediately rejoin queue
+  function leaveAndNext() {
+    if (partnerId) socket.emit("leave");
+    // clean and re-join
+    cleanupCall();
+    socket.emit("join", { name, gender });
+    setStatus("waiting");
     setPartnerId(null);
     setPartnerInfo(null);
-    socket.emit("leave");
+  }
+
+  // Stop completely and return to landing page
+  function stopAndLeave() {
+    if (partnerId) socket.emit("leave");
+    cleanupCall();
+    setJoined(false);
+    setPartnerId(null);
+    setPartnerInfo(null);
+    setStatus("init");
     setMessages([]);
-  };
+    socket.emit("leave");
+  }
 
-  const toggleMic = () => {
-    if (localStream) {
-      localStream.getAudioTracks().forEach((track) => {
-        track.enabled = !track.enabled;
-      });
-      setMicOn((prev) => !prev);
+  // Chat send
+  function sendChat() {
+    if (!input.trim()) return;
+    if (partnerId) {
+      socket.emit("chat-message", { to: partnerId, message: input });
+      setMessages((prev) => [...prev, { from: "Me", message: input }]);
+      setInput("");
+    } else {
+      alert("Not connected to a stranger yet.");
     }
-  };
+  }
 
-  const toggleCam = () => {
-    if (localStream) {
-      localStream.getVideoTracks().forEach((track) => {
-        track.enabled = !track.enabled;
-      });
-      setCamOn((prev) => !prev);
-    }
-  };
+  // toggle mic/cam
+  function toggleMic() {
+    const s = localStreamRef.current;
+    if (!s) return;
+    s.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
+    setMicOn((v) => !v);
+  }
+  function toggleCam() {
+    const s = localStreamRef.current;
+    if (!s) return;
+    s.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
+    setCamOn((v) => !v);
+  }
 
-  return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ position: "absolute", top: 10, right: 10 }}>
-        Online users: {onlineUsers}
-      </div>
-      {!joined ? (
-        <div style={{ marginTop: "20%" }}>
-          <h1>Welcome to Omegle Clone 🚀</h1>
+  // UI rendering
+  if (!joined) {
+    return (
+      <div style={{ textAlign: "center", paddingTop: 60 }}>
+        <h1>Omegle Clone 🚀</h1>
+        <div>Online: {onlineCount}</div>
+        <div style={{ marginTop: 20 }}>
           <input
-            placeholder="Enter your name"
+            placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            style={{ padding: "8px", margin: "5px" }}
+            style={{ padding: 8, marginRight: 8 }}
           />
-          <select
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            style={{ padding: "8px", margin: "5px" }}
-          >
-            <option value="">Select Gender</option>
+          <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ padding: 8 }}>
+            <option value="">Select gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
-          <br />
-          <button onClick={handleJoin} style={{ padding: "10px 20px", marginTop: "10px" }}>
+        </div>
+        <div style={{ marginTop: 20 }}>
+          <button onClick={handleJoin} style={{ padding: "10px 20px" }}>
             Connect to a stranger
           </button>
         </div>
-      ) : (
-        <div>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-            {/* Remote video - Bigger */}
-            <div style={{ margin: "10px", position: "relative" }}>
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                style={{ width: "600px", height: "400px", backgroundColor: "black" }}
-              />
-              {!partnerInfo && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    color: "white",
-                  }}
-                >
-                  Waiting for user...
-                </div>
-              )}
-              {partnerInfo && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "5px",
-                    left: "5px",
-                    background: "rgba(0,0,0,0.5)",
-                    color: "white",
-                    padding: "2px 5px",
-                    borderRadius: "5px",
-                  }}
-                >
-                  {partnerInfo.name} ({partnerInfo.gender})
-                </div>
-              )}
-            </div>
+      </div>
+    );
+  }
 
-            {/* Local video - Smaller, corner */}
-            <div style={{ margin: "10px", position: "relative" }}>
-              <video
-                ref={localVideoRef}
-                autoPlay
-                muted
-                playsInline
-                style={{
-                  width: "200px",
-                  height: "150px",
-                  backgroundColor: "black",
-                  border: "2px solid white",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "5px",
-                  left: "5px",
-                  background: "rgba(0,0,0,0.5)",
-                  color: "white",
-                  padding: "2px 5px",
-                  borderRadius: "5px",
-                }}
-              >
-                {name} ({gender})
-              </div>
-            </div>
-          </div>
+  // joined view (call screen)
+  return (
+    <div style={{ textAlign: "center", padding: 12 }}>
+      <div style={{ position: "absolute", top: 8, right: 12 }}>Online: {onlineCount}</div>
 
-          <div style={{ marginTop: "20px" }}>
-            <button onClick={toggleMic} style={{ padding: "8px 20px", marginRight: "10px" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 28 }}>
+        {/* remote bigger */}
+        <div style={{ position: "relative" }}>
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            style={{ width: 640, height: 480, backgroundColor: "black" }}
+          />
+          {!partnerId && (
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                color: "white",
+                fontSize: 18,
+              }}
+            >
+              Waiting for user...
+            </div>
+          )}
+          {partnerInfo && (
+            <div
+              style={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                background: "rgba(0,0,0,0.6)",
+                color: "#fff",
+                padding: "4px 8px",
+                borderRadius: 4,
+              }}
+            >
+              {partnerInfo.name} ({partnerInfo.gender})
+            </div>
+          )}
+
+          {/* Buttons under remote video */}
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 8 }}>
+            <button onClick={toggleMic} style={{ padding: "8px 12px" }}>
               {micOn ? "Mute" : "Unmute"}
             </button>
-            <button onClick={toggleCam} style={{ padding: "8px 20px", marginRight: "10px" }}>
+            <button onClick={toggleCam} style={{ padding: "8px 12px" }}>
               {camOn ? "Camera Off" : "Camera On"}
             </button>
-            <button onClick={handleStop} style={{ padding: "8px 20px" }}>
+            <button
+              onClick={() => {
+                leaveAndNext();
+              }}
+              style={{ padding: "8px 12px" }}
+            >
+              Next Stranger
+            </button>
+            <button
+              onClick={() => {
+                stopAndLeave();
+              }}
+              style={{ padding: "8px 12px" }}
+            >
               Stop
             </button>
           </div>
+        </div>
 
-          <div style={{ marginTop: "20px", maxWidth: "600px", margin: "auto" }}>
+        {/* local small / PiP */}
+        <div style={{ position: "relative", width: 220 }}>
+          <video
+            ref={localVideoRef}
+            autoPlay
+            muted
+            playsInline
+            style={{ width: 220, height: 165, backgroundColor: "black", border: "2px solid #fff" }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 6,
+              left: 6,
+              background: "rgba(0,0,0,0.6)",
+              color: "#fff",
+              padding: "4px 6px",
+              borderRadius: 4,
+            }}
+          >
+            {name} ({gender})
+          </div>
+
+          {/* CHAT just below local camera */}
+          <div style={{ marginTop: 12 }}>
             <div
               style={{
-                border: "1px solid gray",
-                height: "150px",
-                overflowY: "scroll",
-                padding: "5px",
+                width: 220,
+                height: 200,
+                border: "1px solid #ccc",
+                overflowY: "auto",
                 textAlign: "left",
+                padding: 6,
+                background: "#fafafa",
               }}
             >
-              {messages.map((msg, i) => (
-                <div key={i}>
-                  <b>{msg.from}:</b> {msg.text}
+              {messages.map((m, i) => (
+                <div key={i} style={{ marginBottom: 6 }}>
+                  <b>{m.from}:</b> {m.message || m.text}
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: "10px" }}>
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
               <input
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                style={{ padding: "5px", width: "70%" }}
-                placeholder="Type a message"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                style={{ flex: 1, padding: 6 }}
+                placeholder="Type a message..."
               />
-              <button onClick={handleSendMessage} style={{ padding: "5px 10px", marginLeft: "5px" }}>
+              <button onClick={sendChat} style={{ padding: "6px 10px" }}>
                 Send
               </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <small>Status: {status}</small>
+      </div>
     </div>
   );
-}
 
-export default App;
+  // helper for Send button bound in JSX
+  function sendChat() {
+    if (!input.trim()) return;
+    if (partnerId) {
+      socket.emit("chat-message", { to: partnerId, message: input });
+      setMessages((prev) => [...prev, { from: "Me", message: input }]);
+      setInput("");
+    } else {
+      alert("Not connected to a partner yet.");
+    }
+  }
+}
