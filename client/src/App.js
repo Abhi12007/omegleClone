@@ -584,7 +584,7 @@ export default function App() {
                       }}
                       title="Reload camera"
                     >
-                      <↻/>
+                      ↻
                     </button>
 
                     <div className="controls centered">
