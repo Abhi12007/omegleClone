@@ -211,7 +211,7 @@ body,html,#root{
   width: 64px;
   height: 64px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 2px;
@@ -219,7 +219,7 @@ body,html,#root{
   color: white;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  margin-left: 20px; /* 🔹 adds gap between Stop and Report */
+  margin-left: 5px; /* 🔹 adds gap between Stop and Report */
 }
 .report-btn:hover {
   background: #cc0000;
