@@ -512,22 +512,51 @@ export default function App() {
   /* ---------- Render ---------- */
   return (
     <Router>
+    {/* ✅ Global Nav Bar */}
+    <header className="landing-header-nav">
+      <nav>
+        {!joined ? (
+          // When user is on landing page (not joined)
+          <>
+            <Link to="/about">About Us</Link>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/blog">Blog</Link>
+          </>
+        ) : (
+          // When user is in other pages (joined or browsing other routes)
+          <>
+            <Link to="/">Home</Link>
+            <Link to="/about">About Us</Link>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/blog">Blog</Link>
+          </>
+        )}
+      </nav>
+    </header>
       <Routes>
         <Route path="/about" element={<About />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/*" element={
+         {/* Landing / In-app page */}
+      <Route
+        path="/*"
+        element={
           <div className="page">
-            {/* Header nav on landing only */}
-            {!joined && (
-              <header className="landing-header-nav">
-                <nav>
-                  <Link to="/about">About Us</Link>
-                  <Link to="/contact">Contact Us</Link>
-                  <Link to="/blog">Blog</Link>
-                </nav>
-              </header>
+            {!joined ? (
+              /* Landing page content */
+              <div className="center-card"> ... </div>
+            ) : (
+              /* In-app UI */
+              <div className="inapp-wrapper"> ... </div>
             )}
+          </div>
+        }
+      />
+        
+      /*  <Route path="/*" element={
+          <div className="page"> */   // commented out 
+            
+            
 
             {!joined ? (
               /* ----- LANDING ----- */
