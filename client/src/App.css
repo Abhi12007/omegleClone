@@ -225,6 +225,10 @@ body,html,#root{
 .report-btn:hover {
  background: rgba(255, 255, 255, 0.12);
 }
+.report-btn .label {
+  margin-top: 4px;
+  font-size: 12px;
+}
 
 /* Report Modal */
 .report-overlay {
