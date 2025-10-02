@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import io from "socket.io-client";
-
 import About from "./About";
 import Blog from "./Blog";
 import Contact from "./Contact";
@@ -513,42 +512,22 @@ export default function App() {
   /* ---------- Render ---------- */
   return (
     <Router>
-           {/* ✅ Global Nav Bar (always visible) */}
-    <header className="landing-header-nav">
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/about">About Us</Link>
-        <Link to="/contact">Contact Us</Link>
-        <Link to="/blog">Blog</Link>
-      </nav>
-    </header>
-      <Routes> 
-    
-          <Route
-       path="/"
-    element={
-      <div className="page">
-        {!joined ? (
-          /* ----- LANDING ----- */
-          <div className="center-card">
-            {/* Banner, gender selection, connect button */}
-          </div>
-        ) : (
-          /* ----- IN-APP (video + chat) ----- */
-          <div className="inapp-wrapper">
-            {/* Video + chat UI */}
-          </div>
-        )}
-        }
-      />
-       
+      <Routes>
         <Route path="/about" element={<About />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/*" element={
           <div className="page">
             {/* Header nav on landing only */}
-            
+            {!joined && (
+              <header className="landing-header-nav">
+                <nav>
+                  <Link to="/about">About Us</Link>
+                  <Link to="/contact">Contact Us</Link>
+                  <Link to="/blog">Blog</Link>
+                </nav>
+              </header>
+            )}
 
             {!joined ? (
               /* ----- LANDING ----- */
@@ -753,30 +732,25 @@ export default function App() {
 
                               {/* Blog option */}
                               <button
-  className="blog-btn"
-  onClick={() => {
-    // tell server to clear block for this user
-    socket.emit("skip-block");
+                                className="blog-btn"
+                                  onClick={() => {
+          // ✅ Auto-cancel countdown
+          setIsBlocked(false);
+          setBlockCountdown(60);
+          if (countdownInterval.current) {
+            clearInterval(countdownInterval.current);
+            countdownInterval.current = null;
+          }
 
-    // reset UI
-    setIsBlocked(false);
-    setBlockCountdown(60);
-    if (countdownInterval.current) {
-      clearInterval(countdownInterval.current);
-      countdownInterval.current = null;
-    }
-
-    // redirect to blog
-    window.location.href = "/blog";
-  }}
->
-  Click here to read blogs
-</button>
-
+          // Redirect to blog
+          window.location.href = "/blog";
+                                                  }}
+                                          >
+                                          Click here to read blogs
+                                          </button>
                                           </div>
                                       </div>
                             )}
-
 
           </div>
         } />
