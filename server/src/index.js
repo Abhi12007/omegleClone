@@ -25,22 +25,23 @@ io.on('connection', (socket) => {
   io.emit('online-count', io.engine.clientsCount);
   io.emit('online-users', io.engine.clientsCount);
 
-   socket.on('join', (data) => {
-    const ip = socket.handshake.address;
+    // Join event with blocked IP check
+  socket.on('join', (data) => {
+    const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.handshake.address;
     const unblockAt = blockedUsers.get(ip);
 
     if (unblockAt && unblockAt > Date.now()) {
       const remaining = Math.ceil((unblockAt - Date.now()) / 1000);
       console.log(`Blocked IP ${ip} tried to join. ${remaining}s left.`);
 
-      // tell user they are still blocked
-      socket.emit("reported");
+      // tell user they are still blocked with actual remaining time
+      socket.emit("reported", { remaining });
       return;
     }
 
+    // normal join flow
     userInfo[socket.id] = data || { name: 'Anonymous', gender: 'other' };
     if (partners[socket.id]) return;
-
 
     removeFromQueue(socket.id);
 
@@ -81,6 +82,7 @@ io.on('connection', (socket) => {
       partnerInfo: userInfo[peerId]
     });
   });
+
 
   // signaling
   socket.on('offer', ({ to, sdp }) => { if (to) io.to(to).emit('offer', { from: socket.id, sdp }); });
