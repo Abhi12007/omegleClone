@@ -564,7 +564,7 @@ export default function App() {
                   <ul>
                     <li>Be respectful and kind.</li>
                     <li>Do not share personal information.</li>
-                    <li>Report inappropriate behavior.</li>
+                    <li>Report inappropriate behaviour.</li>
                     <li>Enjoy making new friends!</li>
                   </ul>
                 </div>
@@ -724,7 +724,7 @@ export default function App() {
                 <div className="blocked-box">
                   <h2>You have been reported 🚫</h2>
                   <p>
-                    Avoid <b>Nudity</b>, <b>Harassment</b>, <b>Spam</b>, or <b>Other</b> inappropriate behavior.
+                    Avoid <b>Nudity</b>, <b>Harassment</b>, <b>Spam</b>, or <b>Other</b> inappropriate behaviour.
                   </p>
                   <p>⏳ Please wait {blockCountdown} seconds before reconnecting.</p>
                 </div>
