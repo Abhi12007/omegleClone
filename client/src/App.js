@@ -513,23 +513,43 @@ export default function App() {
   /* ---------- Render ---------- */
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
+           {/* ✅ Global Nav Bar (always visible) */}
+    <header className="landing-header-nav">
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/about">About Us</Link>
+        <Link to="/contact">Contact Us</Link>
+        <Link to="/blog">Blog</Link>
+      </nav>
+    </header>
+      <Routes> 
+    
+          <Route
+        path="/"
+        element={
+          <div className="page">
+            {!joined ? (
+              /* ----- LANDING ----- */
+              <div className="center-card">
+                {/* Banner, gender selection, connect button */}
+              </div>
+            ) : (
+              /* ----- IN-APP (video + chat) ----- */
+              <div className="inapp-wrapper">
+                {/* Video + chat UI */}
+              </div>
+            )}
+          </div>
+        }
+      />
+       
         <Route path="/about" element={<About />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/*" element={
           <div className="page">
             {/* Header nav on landing only */}
-            {!joined && (
-              <header className="landing-header-nav">
-                <nav>
-                  <Link to="/about">About Us</Link>
-                  <Link to="/contact">Contact Us</Link>
-                  <Link to="/blog">Blog</Link>
-                </nav>
-              </header>
-            )}
+            
 
             {!joined ? (
               /* ----- LANDING ----- */
