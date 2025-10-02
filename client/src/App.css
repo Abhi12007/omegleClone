@@ -203,3 +203,97 @@ body,html,#root{
   .content{flex-direction:column;align-items:center}
   .chat-card{width:92%}
 }
+
+/* Report Button */
+.report-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: #ff4040;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+.report-btn:hover {
+  background: #cc0000;
+}
+
+/* Report Modal */
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.report-box {
+  background: #fff;
+  color: #111;
+  padding: 22px;
+  border-radius: 12px;
+  width: 340px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.report-box h3 {
+  margin-top: 0;
+}
+.report-box ul {
+  list-style: none;
+  padding: 0;
+}
+.report-box li {
+  margin: 8px 0;
+}
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+.report-actions button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+.report-actions button:first-child {
+  background: #eee;
+  color: #333;
+}
+.report-actions button:last-child {
+  background: #ff4040;
+  color: white;
+}
+
+/* Blocked Screen */
+.blocked-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.blocked-box {
+  background: #fff;
+  color: #111;
+  padding: 28px;
+  border-radius: 12px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.blocked-box h2 {
+  color: #d32f2f;
+  margin-top: 0;
+}
+
