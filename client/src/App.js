@@ -504,13 +504,14 @@ export default function App() {
               /* ----- LANDING ----- */
               <div className="center-card">
                 <div className="landing-header">
+                  {/* banner from public */}
+                  <img src="/banner.png" alt="Banner" className="landing-banner" />
                   <div className="landing-title">
                     <h1>Omegle</h1>
                     <div className="sub">Online: {onlineCount}</div>
                   </div>
 
-                  {/* banner from public */}
-                  <img src="/banner.png" alt="Banner" className="landing-banner" />
+                  
                 </div>
 
                 <input className="input" placeholder="Enter your name" value={name} onChange={(e)=>setName(e.target.value)} />
