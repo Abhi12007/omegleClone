@@ -1,3 +1,5 @@
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+
 // client/src/App.js
 import React, { useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
@@ -7,7 +9,54 @@ import Blog from "./Blog";
 import Contact from "./Contact";
 import "./App.css";
 
+
 const socket = io(); // assumes same origin
+
+/* ---------- NavBar Component ---------- */
+function NavBar({ joined }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const showBack = !(location.pathname === "/" && !joined);
+
+  return (
+    <header className="landing-header-nav">
+      <nav style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        {showBack && (
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "white",
+              fontSize: "24px",
+              cursor: "pointer",
+            }}
+            title="Go Back"
+          >
+            ←
+          </button>
+        )}
+        {!joined ? (
+          <>
+            <Link to="/about">About Us</Link>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/blog">Blog</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/">Home</Link>
+            <Link to="/about">About Us</Link>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/blog">Blog</Link>
+          </>
+        )}
+      </nav>
+    </header>
+  );
+}
+
+
 
 /* ---------- SVG Icons ---------- */
 function MicIcon({ active }) {
@@ -513,26 +562,8 @@ export default function App() {
   return (
     <Router>
     {/* ✅ Global Nav Bar */}
-    <header className="landing-header-nav">
-      <nav>
-        {!joined ? (
-          // When user is on landing page (not joined)
-          <>
-            <Link to="/about">About Us</Link>
-            <Link to="/contact">Contact Us</Link>
-            <Link to="/blog">Blog</Link>
-          </>
-        ) : (
-          // When user is in other pages (joined or browsing other routes)
-          <>
-            <Link to="/">Home</Link>
-            <Link to="/about">About Us</Link>
-            <Link to="/contact">Contact Us</Link>
-            <Link to="/blog">Blog</Link>
-          </>
-        )}
-      </nav>
-    </header>
+    <NavBar joined={joined} />
+
       <Routes>
         <Route path="/about" element={<About />} />
         <Route path="/blog" element={<Blog />} />
