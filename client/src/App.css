@@ -68,7 +68,8 @@ body,html,#root{
   margin:8px 0;
   background:rgba(255,255,255,0.03);
   color:#fff;
-  font-size:15px;
+  opacity: 1; 
+  font-size:17px;
   text-align:center;
   transition:all .18s ease;
 }
