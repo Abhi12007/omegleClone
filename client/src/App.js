@@ -721,36 +721,28 @@ export default function App() {
             )}
                {/* ⬇️ BLOCKED OVERLAY (Step 4) */}
             {isBlocked && (
-                      <div className="blocked-overlay">
-                      <div className="blocked-box">
-                          <h2>🚫 You have been reported</h2>
-                              <p>Avoid Nudity, Harassment, Spam, or Other violations.</p>
-                              <p>Please wait <strong>{blockCountdown}</strong> seconds before reconnecting.</p>
+  <div className="blocked-overlay">
+    <div className="blocked-box">
+      <h2>🚫 You have been reported</h2>
+      <p>Avoid Nudity, Harassment, Spam, or Other violations.</p>
+      <p>Please wait <strong>{blockCountdown}</strong> seconds before reconnecting.</p>
 
-                              {/* OR line */}
-                                <div className="or-divider">— OR —</div>
+      {/* OR line */}
+      <div className="or-divider">— OR —</div>
 
-                              {/* Blog option */}
-                              <button
-                                className="blog-btn"
-                                  onClick={() => {
-          // ✅ Auto-cancel countdown
-          setIsBlocked(false);
-          setBlockCountdown(60);
-          if (countdownInterval.current) {
-            clearInterval(countdownInterval.current);
-            countdownInterval.current = null;
-          }
+      {/* Blog option */}
+      <button
+        className="blog-btn"
+        onClick={() => {
+          window.location.href = "/blog"; // redirect to blog route
+        }}
+      >
+        Click here to read blogs
+      </button>
+    </div>
+  </div>
+)}
 
-          // Redirect to blog
-          window.location.href = "/blog";
-                                                  }}
-                                          >
-                                          Click here to read blogs
-                                          </button>
-                                          </div>
-                                      </div>
-                            )}
 
           </div>
         } />
