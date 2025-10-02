@@ -734,7 +734,16 @@ export default function App() {
                               <button
                                 className="blog-btn"
                                   onClick={() => {
-                                    window.location.href = "/blog"; // redirect to blog route
+          // ✅ Auto-cancel countdown
+          setIsBlocked(false);
+          setBlockCountdown(60);
+          if (countdownInterval.current) {
+            clearInterval(countdownInterval.current);
+            countdownInterval.current = null;
+          }
+
+          // Redirect to blog
+          window.location.href = "/blog";
                                                   }}
                                           >
                                           Click here to read blogs
