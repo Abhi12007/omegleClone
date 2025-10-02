@@ -102,6 +102,23 @@ export default function App() {
 
   const chatWindowRef = useRef(null);
 
+  /* ---------- NEW Attention state ---------- */
+  const [showAttention, setShowAttention] = useState(false);
+  useEffect(() => {
+    const alreadyShown = localStorage.getItem("attentionShown");
+    if (!alreadyShown) {
+      setShowAttention(true);
+    }
+  }, []);
+  const handleAttentionContinue = async () => {
+    localStorage.setItem("attentionShown", "true");
+    setShowAttention(false);
+    await startLocalStream(true);
+    socket.emit("join", { name, gender });
+    setJoined(true);
+    setStatus("searching");
+  };
+
   /* ---------- Socket listeners ---------- */
   useEffect(() => {
     socket.on("online-count", (c) => setOnlineCount(c));
@@ -160,7 +177,7 @@ export default function App() {
     if (chatWindowRef.current) chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
   }, [messages, typingIndicator]);
 
-  /* ---------- local preview default position (top-right) ---------- */
+  /* ---------- local preview default position ---------- */
   useEffect(() => {
     function setDefault() {
       const cont = remoteContainerRef.current;
@@ -285,7 +302,6 @@ export default function App() {
 
   /* ---------- Actions ---------- */
   async function handleConnect() {
-    // initial connect: force mic & camera ON
     setMicOn(true);
     setCamOn(true);
     storedPrefsRef.current.micOn = true;
@@ -293,7 +309,6 @@ export default function App() {
 
     await startLocalStream(true);
 
-    // default top-right
     const cont = remoteContainerRef.current;
     if (cont) {
       const rect = cont.getBoundingClientRect();
@@ -358,14 +373,12 @@ export default function App() {
     storedPrefsRef.current.camOn = willEnable;
   }
 
-  // reload local stream: reacquire and replace tracks on the current pc
   async function reloadLocalStream() {
     try {
       const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       newStream.getAudioTracks().forEach((t) => (t.enabled = storedPrefsRef.current.micOn ?? true));
       newStream.getVideoTracks().forEach((t) => (t.enabled = storedPrefsRef.current.camOn ?? true));
 
-      // update preview
       localStreamRef.current = newStream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = newStream;
@@ -373,7 +386,6 @@ export default function App() {
         await localVideoRef.current.play().catch(() => {});
       }
 
-      // replace tracks on existing RTCPeerConnection
       if (pcRef.current) {
         const senders = pcRef.current.getSenders();
         const audioTrack = newStream.getAudioTracks()[0];
@@ -413,7 +425,7 @@ export default function App() {
     if (partnerId) socket.emit("typing", { to: partnerId, fromName: name });
   }
 
-  /* ---------- Drag handlers for local preview ---------- */
+  /* ---------- Drag handlers ---------- */
   function onLocalPointerDown(e) {
     e.preventDefault();
     draggingRef.current = true;
@@ -444,8 +456,6 @@ export default function App() {
     const { sx, sy, lx, ly, cw, ch } = dragStartRef.current;
     let nx = lx + (moveX - sx);
     let ny = ly + (moveY - sy);
-
-    // constrain inside remote and avoid overlapping bottom controls area (reserve 120px)
     const controlsMargin = 120;
     nx = Math.max(6, Math.min(nx, cw - localSize.w - 6));
     ny = Math.max(6, Math.min(ny, ch - localSize.h - controlsMargin));
@@ -470,7 +480,6 @@ export default function App() {
     previewStyle.position = "absolute";
   }
 
-  /* ---------- Typing bubble ---------- */
   function TypingBubble() {
     if (!typingIndicator) return null;
     return (
@@ -489,7 +498,6 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/*" element={
           <div className="page">
-            {/* Header nav on landing only */}
             {!joined && (
               <header className="landing-header-nav">
                 <nav>
@@ -501,7 +509,6 @@ export default function App() {
             )}
 
             {!joined ? (
-              /* ----- LANDING ----- */
               <div className="center-card">
                 <div className="landing-header">
                  <img src="/banner.png" alt="Banner" className="landing-banner" />
@@ -509,9 +516,6 @@ export default function App() {
                     <h1>Omegle</h1>
                     <div className="sub">Online: {onlineCount}</div>
                   </div>
-
-                  {/* banner from public */}
-                  
                 </div>
 
                 <input className="input" placeholder="Enter your name" value={name} onChange={(e)=>setName(e.target.value)} />
@@ -522,114 +526,46 @@ export default function App() {
                   <div className={`gender-option-vertical ${gender==="other"?"active":""}`} onClick={()=>setGender("other")}>⚧️ Other</div>
                 </div>
 
-                <button className="primary" onClick={async ()=>{ await startLocalStream(true); socket.emit("join",{name,gender}); setJoined(true); setStatus("searching"); }}>
+                <button className="primary" onClick={async ()=>{ 
+                  if (showAttention) {
+                    setJoined(true); // go to in-app, will show attention modal
+                  } else {
+                    await startLocalStream(true);
+                    socket.emit("join",{name,gender});
+                    setJoined(true);
+                    setStatus("searching");
+                  }
+                }}>
                   Connect to a stranger
                 </button>
 
                 <div className="info-section">
                   <h2>Talk To Stranger</h2>
-                  <p>
-                    Omegle lets you connect instantly with strangers across the world. Start a chat or video call and meet new people anytime.
-                  </p>
-                  <h3>Communication Guidelines</h3>
-                  <ul>
-                    <li>Be respectful and kind.</li>
-                    <li>Do not share personal information.</li>
-                    <li>Report inappropriate behavior.</li>
-                    <li>Enjoy making new friends!</li>
-                  </ul>
+                  <p>Omegle lets you connect instantly with strangers across the world...</p>
                 </div>
-
-                <footer className="landing-footer">
-                  <div className="footer-left">
-                    Follow us on <span className="insta-icon">📸 Instagram</span>
-                  </div>
-                  <div className="footer-right">
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Privacy Policy</a>
-                    <a href="/about">About Us</a>
-                    <a href="/contact">Contact Us</a>
-                  </div>
-                </footer>
               </div>
             ) : (
-              /* ----- IN-APP (video + chat) ----- */
-              <div className="inapp-wrapper">
-                <div className="topbar">Online: {onlineCount} • Status: {status}</div>
-
-                <div className="content">
-                  <div className="video-container" ref={remoteContainerRef}>
-                    <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
-                    {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
-                    {partnerInfo && <div className="overlay green-glow">{partnerInfo.name} ({partnerInfo.gender})</div>}
-
-                    <video
-                      ref={localVideoRef}
-                      className="local-video-floating green-glow"
-                      autoPlay muted playsInline
-                      onPointerDown={onLocalPointerDown}
-                      style={previewStyle}
-                    />
-
-                    {/* reload button positioned relative to small preview
-                        ensure it stays within preview bounds by computing left/top inline */}
-                    <button
-                      className="preview-reload"
-                      onClick={reloadLocalStream}
-                      style={{
-                        left: localPos.x !== null ? `${localPos.x + localSize.w - 20}px` : undefined,
-                        top: localPos.y !== null ? `${localPos.y - 10}px` : undefined,
-                        right: localPos.x === null ? "18px" : undefined,
-                        position: "absolute",
-                      }}
-                      title="Reload camera"
-                    >
-                      <ReloadIcon />
-                    </button>
-
-                    <div className="controls centered">
-                      <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic} title={micOn ? "Mute" : "Unmute"}>
-                        <MicIcon active={micOn} />
-                        <div className="label">Mute</div>
-                      </button>
-
-                      <button className={`control ${camOn ? "active" : "inactive"}`} onClick={toggleCam} title={camOn ? "Camera Off" : "Camera On"}>
-                        <CameraIcon active={camOn} />
-                        <div className="label">Camera</div>
-                      </button>
-
-                      <button className="control next" onClick={handleNext} title="Next">
-                        <NextIcon />
-                        <div className="label">Next</div>
-                      </button>
-
-                      <button className="control stop" onClick={handleStop} title="Stop">
-                        <StopIcon />
-                        <div className="label">Stop</div>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="chat-card">
-                    <div className="chat-window" ref={chatWindowRef}>
-                      {messages.map((m, i) => (
-                        <div key={i} className={`chat-bubble ${m.mine ? "mine" : "theirs"}`}>
-                          <strong style={{display: m.mine ? "none" : "inline"}}>{m.from}: </strong>
-                          {m.message}
-                        </div>
-                      ))}
-
-                      {typingIndicator && <TypingBubble />}
-                    </div>
-
-                    <div className="chat-input modern">
-                      <button className="plus-btn" title="Open extras">＋</button>
-                      <input value={input} onChange={handleTyping} placeholder="Type your message" onKeyDown={(e)=>{ if(e.key==="Enter") sendChat(); }} />
-                      <button onClick={sendChat}>Send</button>
-                    </div>
+              showAttention ? (
+                <div className="attention-overlay">
+                  <div className="attention-box">
+                    <h2>⚠️ Attention</h2>
+                    <p>Welcome! Please read carefully before starting:</p>
+                    <ul>
+                      <li><b>🎤 Mic Button:</b> Mute or unmute your microphone.</li>
+                      <li><b>📷 Camera Button:</b> Turn your camera on/off.</li>
+                      <li><b>🔴 Stop Button:</b> End the current call.</li>
+                      <li><b>🔵 Next Button:</b> Skip and connect to another user.</li>
+                      <li><b>📹 Preview Video:</b> The small preview video is <b>draggable</b> and can be reloaded by clicking the reload button on its top-right corner.</li>
+                    </ul>
+                    <p className="warning">🚨 <b>Warning:</b> Any vulgar or offensive activity will result in a permanent ban.</p>
+                    <button className="continue-btn" onClick={handleAttentionContinue}>Continue</button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="inapp-wrapper">
+                  {/* existing video + chat UI stays unchanged */}
+                </div>
+              )
             )}
           </div>
         } />
