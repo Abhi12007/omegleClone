@@ -623,7 +623,7 @@ export default function App() {
                     </div>
 
                     <div className="chat-input modern">
-                      <button className="plus-btn" title="Open extras">＋</button>
+                      
                       <input value={input} onChange={handleTyping} placeholder="Type your message" onKeyDown={(e)=>{ if(e.key==="Enter") sendChat(); }} />
                       <button onClick={sendChat}>Send</button>
                     </div>
