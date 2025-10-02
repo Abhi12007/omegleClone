@@ -525,21 +525,20 @@ export default function App() {
       <Routes> 
     
           <Route
-        path="/"
-        element={
-          <div className="page">
-            {!joined ? (
-              /* ----- LANDING ----- */
-              <div className="center-card">
-                {/* Banner, gender selection, connect button */}
-              </div>
-            ) : (
-              /* ----- IN-APP (video + chat) ----- */
-              <div className="inapp-wrapper">
-                {/* Video + chat UI */}
-              </div>
-            )}
+       path="/"
+    element={
+      <div className="page">
+        {!joined ? (
+          /* ----- LANDING ----- */
+          <div className="center-card">
+            {/* Banner, gender selection, connect button */}
           </div>
+        ) : (
+          /* ----- IN-APP (video + chat) ----- */
+          <div className="inapp-wrapper">
+            {/* Video + chat UI */}
+          </div>
+        )}
         }
       />
        
