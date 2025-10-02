@@ -644,7 +644,8 @@ export default function App() {
                              onClick={() => setShowReportModal(true)}
                                title="Report User"
                              >
-                            ⚠️ Report
+                               <div style={{ fontSize: "22px" }}>⚠️</div>
+                               <div className="label">Report</div>
                           </button>
                            )}
                   </div>
