@@ -206,23 +206,24 @@ body,html,#root{
 
 /* Report Button */
 .report-btn {
-  background: #ff4040;
-  border-radius: 50%;
-  width: 64px;
-  height: 64px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font-size: 18px;
-  color: white;
+
+  background: rgba(255, 255, 255, 0.03); /* same subtle bg as others */
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  margin-left: 5px; /* 🔹 adds gap between Stop and Report */
+
+  color: white;
+  font-size: 14px;
+  transition: background 0.2s;
+  margin-left: 40px; /* adds space after Stop button */
 }
 .report-btn:hover {
-  background: #cc0000;
+ background: rgba(255, 255, 255, 0.12);
 }
 
 /* Report Modal */
