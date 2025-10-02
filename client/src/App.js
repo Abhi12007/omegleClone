@@ -17,7 +17,7 @@ function NavBar({ joined }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const showBack = !(location.pathname === "/" && !joined);
+  const showBack = location.pathname !== "/" && !joined;
 
   return (
     <header className="landing-header-nav">
