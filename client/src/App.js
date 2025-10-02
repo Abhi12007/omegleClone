@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import io from "socket.io-client";
+import Home from "./Home";
 import About from "./About";
 import Blog from "./Blog";
 import Contact from "./Contact";
