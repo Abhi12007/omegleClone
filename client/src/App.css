@@ -302,4 +302,25 @@ body,html,#root{
   color: #d32f2f;
   margin-top: 0;
 }
+.or-divider {
+  margin: 16px 0;
+  font-weight: bold;
+  color: #555;
+  text-align: center;
+}
+
+.blog-btn {
+  background: #1e3a8a; /* blue button */
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.blog-btn:hover {
+  background: #0f1f5c;
+}
 
