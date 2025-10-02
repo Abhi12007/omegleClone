@@ -72,6 +72,12 @@ body,html,#root{
   text-align:center;
   transition:all .18s ease;
 }
+
+/* Placeholder text only */
+.input::placeholder {
+  color: #fff;
+  opacity: 1;
+}
 .input:focus{
   border:2px solid var(--green);
   background: rgba(34,197,94,0.08);
@@ -80,7 +86,7 @@ body,html,#root{
 }
 .primary{
   background: linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:white;padding:10px 16px;border-radius:8px;border:0;cursor:pointer;margin-top:12px;font-weight:600;box-shadow:0 8px 28px rgba(37,99,235,0.12)
+  color:white;padding:10px 16px;width:160px;border-radius:8px;border:0;cursor:pointer;margin-top:12px;font-weight:600;box-shadow:0 8px 28px rgba(37,99,235,0.12)
 }
 
 /* gender vertical */
