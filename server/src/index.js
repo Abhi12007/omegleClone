@@ -1,3 +1,5 @@
+// Track blocked users by IP: { ip: unblockTimestamp }
+const blockedUsers = new Map();
 // server/src/index.js
 const express = require('express');
 const http = require('http');
@@ -23,9 +25,22 @@ io.on('connection', (socket) => {
   io.emit('online-count', io.engine.clientsCount);
   io.emit('online-users', io.engine.clientsCount);
 
-  socket.on('join', (data) => {
+   socket.on('join', (data) => {
+    const ip = socket.handshake.address;
+    const unblockAt = blockedUsers.get(ip);
+
+    if (unblockAt && unblockAt > Date.now()) {
+      const remaining = Math.ceil((unblockAt - Date.now()) / 1000);
+      console.log(`Blocked IP ${ip} tried to join. ${remaining}s left.`);
+
+      // tell user they are still blocked
+      socket.emit("reported");
+      return;
+    }
+
     userInfo[socket.id] = data || { name: 'Anonymous', gender: 'other' };
     if (partners[socket.id]) return;
+
 
     removeFromQueue(socket.id);
 
@@ -85,6 +100,35 @@ io.on('connection', (socket) => {
       io.to(to).emit('typing', { from: socket.id, fromName });
     }
   });
+
+    // --- Report Event ---
+  socket.on("report", ({ partnerId, reason }) => {
+    console.log(`User ${socket.id} reported ${partnerId} for: ${reason}`);
+
+    const partnerSocket = io.sockets.sockets.get(partnerId);
+    if (!partnerSocket) return;
+
+    const partnerIp = partnerSocket.handshake.address;
+    const now = Date.now();
+    const cooldown = 60 * 1000; // 60 seconds
+
+    // save block
+    blockedUsers.set(partnerIp, now + cooldown);
+
+    // tell partner they are reported
+    io.to(partnerId).emit("reported");
+
+    // end session for partner
+    io.to(partnerId).emit("partner-left");
+    removeFromQueue(partnerId);
+
+    // also end for reporter
+    io.to(socket.id).emit("partner-left");
+
+    delete partners[partnerId];
+    delete partners[socket.id];
+  });
+
 
   // leave
   socket.on('leave', () => {
