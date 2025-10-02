@@ -538,23 +538,9 @@ export default function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
          {/* Landing / In-app page */}
-      <Route
-        path="/*"
-        element={
-          <div className="page">
-            {!joined ? (
-              /* Landing page content */
-              <div className="center-card"> ... </div>
-            ) : (
-              /* In-app UI */
-              <div className="inapp-wrapper"> ... </div>
-            )}
-          </div>
-        }
-      />
         
-      /*  <Route path="/*" element={
-          <div className="page"> */   // commented out 
+        <Route path="/*" element={
+          <div className="page">    
             
             
 
