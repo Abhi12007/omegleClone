@@ -129,8 +129,15 @@ io.on('connection', (socket) => {
     removeFromQueue(socket.id);
     waitingQueue.push(socket.id);
     delete partners[socket.id];
-  });
-
+  }); 
+    // add handler
+   socket.on("skip-block", () => {
+  const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0] || socket.handshake.address;
+  if (blockedUsers.has(ip)) {
+    blockedUsers.delete(ip); // ✅ allow immediate rejoin
+    console.log(`Block skipped for IP: ${ip}`);
+    }
+    });
 
 
   // leave
