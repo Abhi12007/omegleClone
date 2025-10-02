@@ -101,33 +101,34 @@ io.on('connection', (socket) => {
     }
   });
 
-    // --- Report Event ---
+     // --- Report Event ---
   socket.on("report", ({ partnerId, reason }) => {
     console.log(`User ${socket.id} reported ${partnerId} for: ${reason}`);
 
     const partnerSocket = io.sockets.sockets.get(partnerId);
     if (!partnerSocket) return;
 
-    const partnerIp = partnerSocket.handshake.address;
+    // --- Block partner’s IP ---
+    const partnerIp = partnerSocket.handshake.headers['x-forwarded-for']?.split(',')[0] || partnerSocket.handshake.address;
     const now = Date.now();
     const cooldown = 60 * 1000; // 60 seconds
-
-    // save block
     blockedUsers.set(partnerIp, now + cooldown);
 
-    // tell partner they are reported
-    io.to(partnerId).emit("reported");
+    // tell partner they are reported, send remaining time (always 60s at report time)
+    io.to(partnerId).emit("reported", { remaining: 60 });
 
     // end session for partner
     io.to(partnerId).emit("partner-left");
     removeFromQueue(partnerId);
-
-    // also end for reporter
-    io.to(socket.id).emit("partner-left");
-
     delete partners[partnerId];
+
+    // ✅ reporter is re-queued back into matchmaking immediately
+    io.to(socket.id).emit("partner-left");
+    removeFromQueue(socket.id);
+    waitingQueue.push(socket.id);
     delete partners[socket.id];
   });
+
 
 
   // leave
