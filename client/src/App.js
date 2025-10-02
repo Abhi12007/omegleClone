@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation 
 
 // client/src/App.js
 import React, { useEffect, useRef, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+//  import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";  //it is duplicate
 import io from "socket.io-client";
 import About from "./About";
 import Blog from "./Blog";
