@@ -74,8 +74,8 @@ body,html,#root{
 }
 /* Placeholder text only */
 .input::placeholder {
-  color: #fff;   /* makes 'Enter your name' white */
-  opacity: 1;    /* fully visible */
+  color: #fff;
+  opacity: 1;
 }
 .input:focus{
   border:2px solid var(--green);
@@ -85,7 +85,16 @@ body,html,#root{
 }
 .primary{
   background: linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:white;padding:12px 16px;width: 160px;  /* 👈 same as .gender-option-vertical */border-radius:8px;border:0;cursor:pointer;margin-top:12px;margin-bottom: 32px; font-weight:600;box-shadow:0 8px 28px rgba(37,99,235,0.12)
+  color:white;
+  padding:12px 16px;
+  width:160px;
+  border-radius:8px;
+  border:0;
+  cursor:pointer;
+  margin-top:12px;
+  margin-bottom: 32px;
+  font-weight:600;
+  box-shadow:0 8px 28px rgba(37,99,235,0.12)
 }
 
 /* gender vertical */
@@ -131,7 +140,7 @@ body,html,#root{
 }
 .local-video-floating:active{cursor:grabbing}
 
-/* reload button (round, thicker, stays within small preview) */
+/* reload button */
 .preview-reload{
   width:32px;
   height:32px;
@@ -155,7 +164,7 @@ body,html,#root{
 /* waiting */
 .waiting-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:20px;opacity:.95;z-index:3}
 
-/* controls centered under video */
+/* controls */
 .controls.centered{display:flex;gap:22px;justify-content:center;margin-top:16px;width:100%;max-width:900px;z-index:4}
 .control{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;padding:8px;border-radius:10px;border:0;background:rgba(255,255,255,0.03);cursor:pointer;transition:transform .12s}
 .control:hover{transform:translateY(-4px)}
@@ -184,7 +193,7 @@ body,html,#root{
 .typing-bubble .dots span:nth-child(3){animation-delay:0.24s}
 @keyframes typing-dot{0%{opacity:0.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}100%{opacity:0.25;transform:translateY(0)}}
 
-/* chat input modern */
+/* chat input */
 .chat-input.modern{display:flex;gap:8px;margin-top:6px;border:2px solid var(--green);border-radius:10px;padding:6px;background:linear-gradient(180deg, rgba(34,197,94,0.06), rgba(34,197,94,0.02))}
 .chat-input.modern input{flex:1;padding:10px;border:0;background:transparent;color:#fff;outline:none;border-radius:6px}
 .chat-input.modern button{padding:10px 14px;border-radius:8px;background:var(--green);font-weight:700;color:#002a12;border:0;cursor:pointer}
@@ -196,4 +205,57 @@ body,html,#root{
   .remote-video{width:480px;height:320px}
   .content{flex-direction:column;align-items:center}
   .chat-card{width:92%}
+}
+
+/* 🔴 NEW: Attention Overlay */
+.attention-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.attention-box {
+  background: #fff;
+  color: #222;
+  padding: 28px;
+  border-radius: 12px;
+  width: min(600px, 90%);
+  text-align: left;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+.attention-box h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+.attention-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.attention-box ul li {
+  margin: 8px 0;
+  font-size: 16px;
+}
+.attention-box .warning {
+  color: #d32f2f;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 20px;
+}
+.continue-btn {
+  background: #007bff;
+  color: white;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.continue-btn:hover {
+  background: #0056b3;
 }
