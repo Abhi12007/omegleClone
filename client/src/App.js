@@ -66,6 +66,15 @@ function ReloadIcon() {
 
 /* ---------- App ---------- */
 export default function App() {
+  // Reporting / Block
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockCountdown, setBlockCountdown] = useState(60);
+  const countdownInterval = useRef(null);
+  const [blockedUsers, setBlockedUsers] = useState([]); // local block list
+
+  
   // Refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -151,6 +160,26 @@ export default function App() {
       setPartnerInfo(null);
       setStatus("waiting");
       if (name && gender) socket.emit("join", { name, gender });
+    });
+       // ⬇️ Step 5: handle when THIS user is reported
+    socket.on("reported", () => {
+      setIsBlocked(true);
+      setBlockCountdown(60);
+
+      countdownInterval.current = setInterval(() => {
+        setBlockCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval.current);
+            setIsBlocked(false);
+
+            // after 60s, rejoin the pool
+            socket.emit("join", { name, gender });
+            setStatus("searching");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     });
 
     return () => socket.removeAllListeners();
@@ -608,6 +637,16 @@ export default function App() {
                         <div className="label">Stop</div>
                       </button>
                     </div>
+                        {/* ⬇️ PLACE REPORT BUTTON HERE */}
+                         {partnerId && !isBlocked && (
+                          <button
+                            className="report-btn"
+                             onClick={() => setShowReportModal(true)}
+                               title="Report User"
+                             >
+                            ⚠️ Report
+                          </button>
+                           )}
                   </div>
 
                   <div className="chat-card">
@@ -626,8 +665,67 @@ export default function App() {
                       
                       <input value={input} onChange={handleTyping} placeholder="Type your message" onKeyDown={(e)=>{ if(e.key==="Enter") sendChat(); }} />
                       <button onClick={sendChat}>Send</button>
+                      
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+               {/* ⬇️ PLACE REPORT MODAL HERE */}
+            {showReportModal && (
+              <div className="report-overlay">
+                <div className="report-box">
+                  <h3>Report User</h3>
+                  <p>Select a reason:</p>
+                  <ul>
+                    {["Nudity", "Harassment", "Spam", "Other"].map((reason) => (
+                      <li key={reason}>
+                        <label>
+                          <input
+                            type="radio"
+                            name="reportReason"
+                            value={reason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                          />
+                          {reason}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="report-actions">
+                    <button onClick={() => setShowReportModal(false)}>Cancel</button>
+                    <button
+                      onClick={() => {
+                        if (!reportReason) return alert("Please select a reason");
+                        socket.emit("report", { partnerId, reason: reportReason });
+
+                        // leave & skip this partner
+                        socket.emit("leave");
+                        cleanupCall(true);
+                        setBlockedUsers((prev) => [...prev, partnerId]);
+
+                        // rejoin immediately
+                        socket.emit("join", { name, gender, blocked: blockedUsers });
+                        setStatus("searching");
+
+                        setShowReportModal(false);
+                      }}
+                    >
+                      Submit Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+               {/* ⬇️ BLOCKED OVERLAY (Step 4) */}
+            {isBlocked && (
+              <div className="blocked-overlay">
+                <div className="blocked-box">
+                  <h2>You have been reported 🚫</h2>
+                  <p>
+                    Avoid <b>Nudity</b>, <b>Harassment</b>, <b>Spam</b>, or <b>Other</b> inappropriate behavior.
+                  </p>
+                  <p>⏳ Please wait {blockCountdown} seconds before reconnecting.</p>
                 </div>
               </div>
             )}
