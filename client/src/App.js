@@ -635,9 +635,8 @@ export default function App() {
                       <button className="control stop" onClick={handleStop} title="Stop">
                         <StopIcon />
                         <div className="label">Stop</div>
-                      </button>
-                    </div>
-                        {/* ⬇️ PLACE REPORT BUTTON HERE */}
+                      </button> 
+                         {/* ⬇️ PLACE REPORT BUTTON HERE */}
                          {partnerId && !isBlocked && (
                           <button
                             className="report-btn"
@@ -646,8 +645,10 @@ export default function App() {
                              >
                                <div style={{ fontSize: "22px" }}>⚠️</div>
                                <div className="label">Report</div>
-                          </button>
+                             </button>
                            )}
+                    </div>
+                       
                   </div>
 
                   <div className="chat-card">
