@@ -17,10 +17,7 @@ function NavBar({ joined }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Show arrow only on About, Contact, Blog (not landing, not in-app)
-  const showBack =
-    location.pathname !== "/" && // not landing
-    !joined;                     // not in video call
+  const showBack = !(location.pathname === "/" && !joined);
 
   return (
     <header className="landing-header-nav">
@@ -58,7 +55,6 @@ function NavBar({ joined }) {
     </header>
   );
 }
-
 
 
 
@@ -121,21 +117,6 @@ function ReloadIcon() {
 export default function App() {
   // Reporting / Block
   const [showReportModal, setShowReportModal] = useState(false);
-  
-  const location = useLocation();
-
-  useEffect(() => {
-    // If user is in a call (joined) and navigates away from Home ("/")
-    if (joined && location.pathname !== "/") {
-      socket.emit("leave");     // notify server
-      cleanupCall(true);        // stop streams & reset UI
-      setPartnerId(null);
-      setPartnerInfo(null);
-      setStatus("init");        // reset status
-      setJoined(false);         // ✅ ensures user A won’t rejoin automatically
-    }
-  }, [location]);
-
   const [reportReason, setReportReason] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockCountdown, setBlockCountdown] = useState(60);
