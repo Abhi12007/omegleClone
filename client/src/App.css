@@ -194,7 +194,7 @@ body,html,#root{
 .chat-input.modern{display:flex;gap:8px;margin-top:6px;border:2px solid var(--green);border-radius:10px;padding:6px;background:linear-gradient(180deg, rgba(34,197,94,0.06), rgba(34,197,94,0.02))}
 .chat-input.modern input{flex:1;padding:10px;border:0;background:transparent;color:#fff;outline:none;border-radius:6px}
 .chat-input.modern button{padding:10px 14px;border-radius:8px;background:var(--green);font-weight:700;color:#002a12;border:0;cursor:pointer}
-.plus-btn{background:transparent;border:none;color:#fff;font-size:20px;padding:0 8px;cursor:pointer}
+
 
 /* responsive */
 @media (max-width:1100px){
