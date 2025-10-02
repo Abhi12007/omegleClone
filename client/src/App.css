@@ -134,18 +134,23 @@ body,html,#root{
 
 /* reload button (round, thicker, stays within small preview) */
 .preview-reload{
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  background:rgba(0,0,0,0.6);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:3px solid white;
-  cursor:pointer;
-  position:absolute;
-  z-index:6;
-  box-shadow:0 8px 20px rgba(0,0,0,0.5);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.65);  /* dark circle behind ↻ */
+  color: #fff;                  /* white ↻ */
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;                 /* 🔴 removed white ring */
+  cursor: pointer;
+  z-index: 6;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  user-select: none;
+  line-height: 1;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 .preview-reload:hover{transform:scale(1.03)}
 
