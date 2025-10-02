@@ -17,7 +17,10 @@ function NavBar({ joined }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const showBack = !(location.pathname === "/" && !joined);
+  // Show arrow only on About, Contact, Blog (not landing, not in-app)
+  const showBack =
+    location.pathname !== "/" && // not landing
+    !joined;                     // not in video call
 
   return (
     <header className="landing-header-nav">
@@ -55,6 +58,7 @@ function NavBar({ joined }) {
     </header>
   );
 }
+
 
 
 
