@@ -211,7 +211,7 @@ body,html,#root{
   align-items: center;
   justify-content: center;
 
-  background: rgba(255, 255, 255, 0.03); /* same subtle bg as others */
+  background: rgba(255, 255, 255, 0.03); /*  same subtle bg as others */
   border: none;
   border-radius: 12px;
   padding: 10px 14px;
