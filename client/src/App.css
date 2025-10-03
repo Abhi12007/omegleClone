@@ -179,7 +179,7 @@ body,html,#root{
 .control.next svg {
   stroke: #2563eb; /* bright blue stroke */
   filter: drop-shadow(0 0 6px #2563eb) drop-shadow(0 0 12px #2563eb);
-  animation: bluePulse 2s infinite alternate ease-in-out;
+  animation: bluePulse 1s infinite alternate ease-in-out;
 }
 
 /* Hover = stronger glow */
