@@ -175,6 +175,29 @@ body,html,#root{
 .control.next::before{content:"";position:absolute;inset:-6px;border-radius:12px;box-shadow:0 0 28px rgba(37,99,235,0.28);opacity:0.95;transition:opacity .3s,transform .28s;z-index:-1}
 .control.next:hover::before{transform:scale(1.03);opacity:1}
 
+/* 🔥 Triangle icon glow + pulse */
+.control.next svg {
+  stroke: #2563eb; /* bright blue stroke */
+  filter: drop-shadow(0 0 6px #2563eb) drop-shadow(0 0 12px #2563eb);
+  animation: bluePulse 2s infinite alternate ease-in-out;
+}
+
+/* Hover = stronger glow */
+.control.next:hover svg {
+  filter: drop-shadow(0 0 10px #1d4ed8) drop-shadow(0 0 20px #1d4ed8);
+}
+
+/* Keyframes for pulsing neon effect */
+@keyframes bluePulse {
+  from {
+    filter: drop-shadow(0 0 4px #2563eb) drop-shadow(0 0 8px #2563eb);
+  }
+  to {
+    filter: drop-shadow(0 0 10px #1d4ed8) drop-shadow(0 0 20px #1d4ed8);
+  }
+}
+
+
 /* chat */
 .chat-card{width:320px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;display:flex;flex-direction:column;gap:10px;align-items:stretch;z-index:3}
 .chat-window{height:220px;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
