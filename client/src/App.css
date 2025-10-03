@@ -34,19 +34,42 @@ img, video {
 }
 
 
-/* Tablet */
+/* Tablet (≥600px) */
 @media (min-width: 600px) {
   body {
     font-size: 17px;
   }
+
+  .gender-vertical {
+    flex-direction: row;    /* put in a row */
+    flex-wrap: wrap;        /* allow wrapping */
+    justify-content: center;
+  }
+
+  .gender-option-vertical {
+    flex: 1 1 40%;          /* 2 in one row */
+    max-width: 200px;
+  }
 }
 
-/* Desktop */
+/* Desktop (≥1024px) */
 @media (min-width: 1024px) {
   body {
     font-size: 18px;
   }
+
+  .gender-vertical {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .gender-option-vertical {
+    flex: 1 1 40%;          /* keep 2 in a row */
+    max-width: 200px;
+  }
 }
+
 
 .page {
   min-height: 100vh;
@@ -130,18 +153,18 @@ img, video {
   color:white;padding:10px 16px;width:160px;border-radius:8px;border:0;cursor:pointer;margin-top:12px;font-weight:600;box-shadow:0 8px 28px rgba(37,99,235,0.12)
 }
 
-/* gender vertical */
+/* Default (mobile first) → vertical */
 .gender-vertical {
   display: flex;
-  flex-wrap: wrap;         /* ✅ allows wrapping on small screens */
+  flex-direction: column;   /* ✅ stack vertically on phones */
   gap: 12px;
   margin: 16px 0;
-  justify-content: center; /* ✅ center buttons */
+  align-items: center;
 }
 
 .gender-option-vertical {
-  flex: 1 1 120px;         /* ✅ responsive width: min 120px, can grow */
-  max-width: 200px;        /* ✅ caps size on large screens */
+  width: 100%;
+  max-width: 280px;         /* ✅ keeps them neat */
   text-align: center;
   padding: 12px;
   border-radius: 8px;
@@ -152,6 +175,21 @@ img, video {
   font-weight: 600;
   transition: 0.12s;
 }
+
+/* Tablet & Desktop → 2 in one row, 1 below */
+@media (min-width: 768px) {
+  .gender-vertical {
+    flex-direction: row;    /* ✅ arrange in a row */
+    flex-wrap: wrap;        /* ✅ allow wrapping */
+    justify-content: center;
+  }
+
+  .gender-option-vertical {
+    flex: 1 1 40%;          /* ✅ roughly half width */
+    max-width: 200px;
+  }
+}
+
 
 .gender-option-vertical.active {
   border: 2px solid var(--green);
