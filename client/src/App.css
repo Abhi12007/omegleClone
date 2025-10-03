@@ -341,17 +341,27 @@ body,html,#root{
 
 .warning-box {
   opacity: 0;
-  transform: translateY(20px);
-  animation: slideFadeIn 2s ease-out forwards;
+  transform: translateY(30px);
+  animation: slideFadeIn 2s ease-in-out forwards;
+  background-color: #ffe6e6;   /* soft pink background */
+  border: 1px solid #d46a6a;  /* lighter border to match firebrick */
+  border-radius: 6px;
+  color: #b22222;             /* Firebrick text */
+  font-weight: bold;
+  text-align: center;
+  max-width: 600px;
+  margin: 20px auto 0;
+  padding: 12px;
 }
 
 @keyframes slideFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
