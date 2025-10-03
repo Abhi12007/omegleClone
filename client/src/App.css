@@ -19,11 +19,20 @@
 body, html, #root {
   height: 100%;
   margin: 0;
+  padding: 0;
   background: radial-gradient(ellipse at top left, rgba(3,7,23,0.85), rgba(4,9,20,1));
   font-family: Inter, system-ui, sans-serif;
   color: #e6eef8;
   font-size: 16px; /* default font size (mobile first) */
+
+  max-width: 100%;      /* ✅ prevent overflow beyond screen */
+  overflow-x: hidden;   /* ✅ stop sideways scrolling in Chrome mobile */
 }
+img, video {
+  max-width: 100%;   /* ✅ never exceed container */
+  height: auto;      /* ✅ keep proportions */
+}
+
 
 /* Tablet */
 @media (min-width: 600px) {
@@ -39,7 +48,17 @@ body, html, #root {
   }
 }
 
-.page{min-height:100vh;padding:0;margin:0;overflow:auto;position:relative}
+.page {
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;     /* ✅ only vertical scroll */
+  overflow-x: hidden;   /* ✅ block sideways scroll */
+  position: relative;
+  width: 100%;          /* ✅ never exceed screen width */
+  box-sizing: border-box;
+}
+
 
 /* Landing header nav */
 .landing-header-nav {
@@ -161,7 +180,19 @@ body, html, #root {
 
 /* video layout */
 .video-container{position:relative;display:flex;flex-direction:column;align-items:center}
-.remote-video{width:900px;height:520px;background:#000;border-radius:12px;object-fit:cover;box-shadow:0 14px 40px rgba(2,6,23,0.7);position:relative;z-index:2}
+.remote-video {
+  width: 100%;             /* ✅ fill the container (fits all devices) */
+  max-width: 900px;        /* ✅ cap size on desktop/laptops */
+  height: auto;            /* ✅ keeps proportions */
+  aspect-ratio: 16 / 9;    /* ✅ ensures correct video shape */
+  background: #000;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 14px 40px rgba(2,6,23,0.7);
+  position: relative;
+  z-index: 2;
+}
+
 
 /* local preview */
 .local-video-floating{
