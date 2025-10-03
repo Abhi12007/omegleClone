@@ -597,11 +597,19 @@ export default function App() {
                   <div className={`gender-option-vertical ${gender==="other"?"active":""}`} onClick={()=>setGender("other")}>⚧️ Other</div>
                 </div>
 
-                <button className="primary" onClick={async ()=>{ await startLocalStream(true); socket.emit("join",{name,gender}); setJoined(true); setStatus("searching"); }}>
-                  Connect to a stranger
-                </button>
+               <button 
+  className="primary glow-button" 
+  onClick={async ()=>{ 
+    await startLocalStream(true); 
+    socket.emit("join",{name,gender}); 
+    setJoined(true); 
+    setStatus("searching"); 
+  }}
+>
+  Connect to a stranger
+</button>
 
-                 <div style={{ 
+              <div className="warning-box" style={{ 
   marginTop: "20px", 
   padding: "12px", 
   backgroundColor: "#ffe6e6", 
@@ -614,8 +622,10 @@ export default function App() {
   marginLeft: "auto",
   marginRight: "auto"
 }}>
-  ⚠️ Important: Wakiee is a safe space for everyone. Any form of nudity, harassment, or abusive behaviour is strictly prohibited and will result in a permanent ban without warning.
+  ⚠️ Important: Wakiee is a safe space for everyone. Any form of nudity, harassment, or abusive behaviour 
+  is strictly prohibited and will result in a permanent ban without warning.
 </div>
+
 
 {/* After this → Features Section, Talk to Stranger Section, Guidelines Section */}
                     
