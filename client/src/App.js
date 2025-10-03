@@ -22,7 +22,7 @@ const socket = io(); // assumes same origin
 function NavBar({ joined }) {
   const navigate = useNavigate();
   const location = useLocation();
-const location = useLocation();
+
   
 
 // End call if user leaves the video page
