@@ -7,6 +7,10 @@ import io from "socket.io-client";
 import About from "./About";
 import Blog from "./Blog";
 import Contact from "./Contact";
+import Privacy from "./Privacy";
+import Terms from "./Terms";
+import Guidelines from "./Guidelines";
+
 import "./App.css";
 import OnboardingModal from "./OnboardingModal";
 
@@ -576,6 +580,9 @@ const [onboardingSeen, setOnboardingSeen] = useState(
         <Route path="/about" element={<About />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/guidelines" element={<Guidelines />} />
          {/* Landing / In-app page */}
         
         <Route path="/*" element={
@@ -705,12 +712,14 @@ const [onboardingSeen, setOnboardingSeen] = useState(
     © 2025 Wakiee - All rights reserved.
   </div>
   
-  <div className="footer-right">
-    <a href="#">Terms of Service</a>
-    <a href="#">Privacy Policy</a>
-    <a href="/about">About Us</a>
-    <a href="/contact">Contact Us</a>
-  </div>
+<div className="footer-right">
+  <a href="/privacy">Privacy Policy</a>
+  <a href="/terms">Terms of Service</a>
+  <a href="/guidelines">Community Guidelines</a>
+  <a href="/about">About Us</a>
+  <a href="/contact">Contact Us</a>
+</div>
+
 </footer>
 
                   
