@@ -658,7 +658,7 @@ export default function App() {
     </a>
   </div>
                        
-  </div>
+  
   
   <div className="footer-center">
     © 2025 Wakiee - All rights reserved.
