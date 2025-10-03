@@ -655,7 +655,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
                   <img src="/banner.png" alt="Banner" className="landing-banner" />
                   <div className="landing-title">
                     <h1>Wakiee</h1>
-                    <div className="sub">Online: {onlineCount}</div>
+                    <div className="sub">🟢Online: {onlineCount}</div>
                   </div>
 
                   
