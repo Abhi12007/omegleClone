@@ -784,7 +784,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
             ) : (
               /* ----- IN-APP (video + chat) ----- */
               <div className="inapp-wrapper">
-                <div className="topbar">Online: {onlineCount} • Status: {status}</div>
+                <div className="topbar">🟢Online: {onlineCount} • Status: {status}</div>
 
                 <div className="content">
                   <div className="video-container" ref={remoteContainerRef}>
