@@ -602,17 +602,49 @@ export default function App() {
                 </button>
 
                 <div className="info-section">
-                  <h2>Talk To Stranger</h2>
+
+
+                   <section id="features" style={{ padding: "40px", textAlign: "center" }}>
+                          <h2>🌟 Features of Wakiee</h2>
+                          <ul style={{ listStyle: "none", padding: 0 }}>
+                          <li>🔒 <strong>Moderated Calls & Chats</strong> – Safe and respectful with reporting tools.</li>
+                          <li>🌍 <strong>Global Community</strong> – Meet people from all around the world.</li>
+                          <li>⚡ <strong>Instant & Anonymous Connection</strong> – No sign-ups, just start talking.</li>
+                          <li>🛡️ <strong>Report & Block</strong> – Stay in control of who you talk to.</li>
+                          <li>🎓 <strong>Learn & Share</strong> – Practice languages or share new ideas.</li>
+                          <li>🤝 <strong>Perfect for Introverts</strong> – A safe space to overcome shyness.</li>
+                          <li>📱 <strong>Simple & Fast</strong> – Lightweight and mobile-friendly.</li>
+                          </ul>
+                   </section>
+
+
+
+          
+                   <section id="talk" style={{ padding: "40px", textAlign: "center" }}>
+                  <h2>🗨️Talk To Stranger</h2>
                   <p>
-                    Omegle lets you connect instantly with strangers across the world. Start a chat or video call and meet new people anytime.
-                  </p>
-                  <h3>Communication Guidelines</h3>
-                  <ul>
-                    <li>Be respectful and kind.</li>
-                    <li>Do not share personal information.</li>
-                    <li>Report inappropriate behaviour.</li>
-                    <li>Enjoy making new friends!</li>
+                     Welcome to <strong>Wakiee</strong>, the best alternative to Omegle for meeting new people online.  
+                     Our idea is simple: <strong>connect the world and help people make friends without barriers.</strong>
+                  <ul style={{ listStyle: "none", padding: 0 }}>
+                  <li>No registration required</li>
+                  <li>No profiles or sign-ups</li>
+                  <li>Just click and start talking instantly</li>
+                  <li>Learn a new language, discover cultures, or just make new friends</li>
+                  <li>A safe space for introverts to overcome shyness</li>
                   </ul>
+                  </section>
+                  </p>
+      <section id="guidelines" style={{ padding: "40px", textAlign: "center", background: "#f9f9f9" }}>
+        <h3>📜Communication Guidelines</h3>
+        <ul style={{ listStyle: "none", padding: 0 }}>
+    <li>✅ You must be 18+ to use Wakiee</li>
+    <li>🚫 Do not share personal info (phone, address, etc.)</li>
+    <li>🤝 Respect others — no bullying or hate speech</li>
+    <li>⚠️ Report inappropriate behaviour immediately</li>
+    <li>🛡️ Stay anonymous — that’s the fun of talking to strangers</li>
+    <li>💬 Be kind and open-minded — every conversation is unique</li>
+       </ul>
+      </section>                 
                 </div>
 
                 <footer className="landing-footer">
