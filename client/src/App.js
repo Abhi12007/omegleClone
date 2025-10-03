@@ -724,6 +724,8 @@ const handleOnboardingContinue = () => {
             ) : (
               /* ----- IN-APP (video + chat) ----- */
               <div className="inapp-wrapper">
+                {/* ⬇️ Show onboarding modal only once */}
+    {showOnboarding && <OnboardingModal onContinue={handleOnboardingContinue} />}
                 <div className="topbar">Online: {onlineCount} • Status: {status}</div>
 
                 <div className="content">
