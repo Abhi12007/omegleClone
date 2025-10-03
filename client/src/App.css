@@ -16,13 +16,29 @@
 }
 
 /* base */
-body,html,#root{
-  height:100%;
-  margin:0;
+body, html, #root {
+  height: 100%;
+  margin: 0;
   background: radial-gradient(ellipse at top left, rgba(3,7,23,0.85), rgba(4,9,20,1));
-  font-family:Inter,system-ui,sans-serif;
-  color:#e6eef8;
+  font-family: Inter, system-ui, sans-serif;
+  color: #e6eef8;
+  font-size: 16px; /* default font size (mobile first) */
 }
+
+/* Tablet */
+@media (min-width: 600px) {
+  body {
+    font-size: 17px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  body {
+    font-size: 18px;
+  }
+}
+
 .page{min-height:100vh;padding:0;margin:0;overflow:auto;position:relative}
 
 /* Landing header nav */
