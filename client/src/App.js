@@ -582,7 +582,7 @@ export default function App() {
                   {/* banner from public */}
                   <img src="/banner.png" alt="Banner" className="landing-banner" />
                   <div className="landing-title">
-                    <h1>Omegle</h1>
+                    <h1>Wakiee</h1>
                     <div className="sub">Online: {onlineCount}</div>
                   </div>
 
@@ -635,7 +635,7 @@ export default function App() {
                   </ul>
                   </section>
                   
-      <section id="guidelines" style={{ padding: "40px", textAlign: "center", background: "#f9f9f9" }}>
+      <section id="guidelines" style={{ padding: "40px", textAlign: "center"}}>
         <h3>📜Communication Guidelines</h3>
         <ul style={{ listStyle: "none", padding: 0 }}>
     <li>✅ You must be 18+ to use Wakiee</li>
