@@ -29,12 +29,12 @@ function NavBar({ joined }) {
               background: "transparent",
               border: "none",
               color: "white",
-              fontSize: "24px",
+              fontSize: "30px",
               cursor: "pointer",
             }}
             title="Go Back"
           >
-            ←
+            ⬅
           </button>
         )}
         {!joined ? (
@@ -627,11 +627,11 @@ export default function App() {
                      Our idea is simple: <strong>connect the world and help people make friends without barriers.</strong>
                   </p> 
                   <ul style={{ listStyle: "none", padding: 0 }}>
-                  <li>No registration required</li>
-                  <li>No profiles or sign-ups</li>
-                  <li>Just click and start talking instantly</li>
-                  <li>Learn a new language, discover cultures, or just make new friends</li>
-                  <li>A safe space for introverts to overcome shyness</li>
+                  <li>👉No registration required</li>
+                  <li>👉No profiles or sign-ups</li>
+                  <li>👉Just click and start talking instantly</li>
+                  <li>👉Learn a new language, discover cultures, or just make new friends</li>
+                  <li>👉A safe space for introverts to overcome shyness</li>
                   </ul>
                   </section>
                   
