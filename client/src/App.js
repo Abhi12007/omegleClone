@@ -561,8 +561,8 @@ export default function App() {
   /* ---------- Render ---------- */
   return (
     <Router>
-    {/* ✅ Global Nav Bar */}
-    <NavBar joined={joined} />
+    {/* ✅ Show NavBar on non-video pages only */}
+{location.pathname !== "/" && !joined && <NavBar joined={joined} />}
 
       <Routes>
         <Route path="/about" element={<About />} />
