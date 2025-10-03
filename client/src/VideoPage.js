@@ -1,7 +1,7 @@
 // client/src/VideoPage.js
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-import OnboardingModal from "./OnboardingModal";
+import "./App.css";
 
 const socket = io(); // same origin
 
@@ -9,7 +9,7 @@ const socket = io(); // same origin
 function MicIcon({ active }) {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <g stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <g stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
         <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" />
         <path d="M19 11v1a7 7 0 0 1-14 0v-1" />
         <path d="M12 19v3" />
@@ -22,7 +22,7 @@ function MicIcon({ active }) {
 function CameraIcon({ active }) {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <g stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <g stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
         <rect x="3.5" y="6" width="13" height="9" rx="2" />
         <path d="M17.5 8l4-2v11l-4-2" />
       </g>
@@ -34,7 +34,9 @@ function CameraIcon({ active }) {
 function NextIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M5 19V5l14 7-14 7z" stroke="#1e3a8a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <g stroke="#1e3a8a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        <path d="M5 19V5l14 7-14 7z" />
+      </g>
     </svg>
   );
 }
@@ -42,33 +44,41 @@ function NextIcon() {
 function StopIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="5.5" y="5.5" width="13" height="13" rx="2" fill="#ff5252" />
+      <g stroke="none" fill="#ff5252">
+        <rect x="5.5" y="5.5" width="13" height="13" rx="2" />
+      </g>
     </svg>
   );
 }
 
-/* ---------- Video Page ---------- */
-export default function VideoPage({ name, gender }) {
-  // Refs
-  const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
-  const remoteContainerRef = useRef(null);
-  const pcRef = useRef(null);
-  const localStreamRef = useRef(null);
+/* ---------- Typing Bubble ---------- */
+function TypingBubble() {
+  return (
+    <div className="chat-bubble theirs typing-bubble">
+      <div className="dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  );
+}
 
-  // State
-  const [status, setStatus] = useState("init"); // init | searching | waiting | paired | in-call
+/* ---------- Video Page ---------- */
+export default function VideoPage({ name, gender, setJoined }) {
+  const [status, setStatus] = useState("init");
   const [partnerId, setPartnerId] = useState(null);
   const [partnerInfo, setPartnerInfo] = useState(null);
   const [onlineCount, setOnlineCount] = useState(0);
 
+  // Chat
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [typingIndicator, setTypingIndicator] = useState("");
 
+  // Controls
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
 
+  // Reporting / Block
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
@@ -76,34 +86,24 @@ export default function VideoPage({ name, gender }) {
   const countdownInterval = useRef(null);
   const [blockedUsers, setBlockedUsers] = useState([]);
 
-  // For draggable preview
+  // Refs
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const pcRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const remoteContainerRef = useRef(null);
+  const chatWindowRef = useRef(null);
+
+  // Drag local preview
   const localSize = { w: 120, h: 80 };
   const [localPos, setLocalPos] = useState({ x: null, y: null });
   const draggingRef = useRef(false);
   const dragStartRef = useRef({});
-  const storedPrefsRef = useRef({ micOn: true, camOn: true, localPos: null });
-
-  // Chat window auto-scroll
-  const chatWindowRef = useRef(null);
-  useEffect(() => {
-    if (chatWindowRef.current) chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-  }, [messages, typingIndicator]);
-
-  // Onboarding modal
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  useEffect(() => {
-    const hasSeen = localStorage.getItem("hasSeenInstructions");
-    if (!hasSeen) setShowOnboarding(true);
-  }, []);
-  const handleOnboardingContinue = () => {
-    localStorage.setItem("hasSeenInstructions", "true");
-    setShowOnboarding(false);
-    startMatching();
-  };
 
   /* ---------- Socket listeners ---------- */
   useEffect(() => {
     socket.on("online-count", (c) => setOnlineCount(c));
+    socket.on("online-users", (c) => setOnlineCount(c));
 
     socket.on("waiting", () => setStatus("waiting"));
 
@@ -154,7 +154,6 @@ export default function VideoPage({ name, gender }) {
     socket.on("reported", () => {
       setIsBlocked(true);
       setBlockCountdown(60);
-
       countdownInterval.current = setInterval(() => {
         setBlockCountdown((prev) => {
           if (prev <= 1) {
@@ -172,21 +171,17 @@ export default function VideoPage({ name, gender }) {
     return () => socket.removeAllListeners();
   }, [name, gender]);
 
+  useEffect(() => {
+    if (chatWindowRef.current)
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+  }, [messages, typingIndicator]);
+
   /* ---------- Media & Peer ---------- */
   async function startLocalStream(forceEnable = false) {
-    if (localStreamRef.current) {
-      if (forceEnable) {
-        localStreamRef.current.getTracks().forEach((t) => (t.enabled = true));
-        setMicOn(true);
-        setCamOn(true);
-      }
-      return localStreamRef.current;
-    }
+    if (localStreamRef.current) return localStreamRef.current;
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       localStreamRef.current = s;
-      s.getAudioTracks().forEach((t) => (t.enabled = micOn));
-      s.getVideoTracks().forEach((t) => (t.enabled = camOn));
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = s;
         localVideoRef.current.muted = true;
@@ -201,26 +196,28 @@ export default function VideoPage({ name, gender }) {
 
   function applyStoredPrefsToTracks() {
     if (!localStreamRef.current) return;
-    const { micOn: storedMic, camOn: storedCam } = storedPrefsRef.current;
-    localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = storedMic));
-    localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = storedCam));
-    setMicOn(storedMic);
-    setCamOn(storedCam);
+    localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = micOn));
+    localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = camOn));
   }
 
   async function createPeerConnection(partnerSocketId, initiator = false, remoteOffer = null) {
-    if (pcRef.current) {
-      try {
-        pcRef.current.close();
-      } catch {}
-      pcRef.current = null;
-    }
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    if (pcRef.current) { try { pcRef.current.close(); } catch {} pcRef.current = null; }
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        {
+          urls: "turn:relay1.expressturn.com:3480",
+          username: "000000002074682235",
+          credential: "tN/jre4jo0Rpoi0z5MXgby3QAqo=",
+        },
+      ],
+    });
     pcRef.current = pc;
 
     pc.ontrack = (e) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = e.streams[0];
+        remoteVideoRef.current.muted = false;
         remoteVideoRef.current.play().catch(() => {});
       }
     };
@@ -245,59 +242,55 @@ export default function VideoPage({ name, gender }) {
   }
 
   function cleanupCall(stopCamera = false) {
-    if (pcRef.current) {
-      try {
-        pcRef.current.close();
-      } catch {}
-      pcRef.current = null;
-    }
+    if (pcRef.current) { try { pcRef.current.close(); } catch {} pcRef.current = null; }
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     if (stopCamera && localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
-      if (localVideoRef.current) localVideoRef.current.srcObject = null;
     }
     setMessages([]);
   }
 
-  /* ---------- Actions ---------- */
-  function startMatching() {
-    socket.emit("join", { name, gender });
-    setStatus("searching");
-  }
-
-  function handleNext() {
-    if (partnerId) socket.emit("leave");
-    cleanupCall(false);
-    setPartnerId(null);
-    setPartnerInfo(null);
-    socket.emit("join", { name, gender });
-    setStatus("searching");
-  }
-
-  function handleStop() {
-    if (partnerId) socket.emit("leave");
-    cleanupCall(true);
-    setPartnerId(null);
-    setPartnerInfo(null);
-    socket.emit("leave");
-    setStatus("init");
-  }
-
+  /* ---------- Controls ---------- */
   function toggleMic() {
-    const s = localStreamRef.current;
-    if (!s) return;
-    const willEnable = !micOn;
-    s.getAudioTracks().forEach((t) => (t.enabled = willEnable));
-    setMicOn(willEnable);
+    const tracks = localStreamRef.current?.getAudioTracks();
+    if (tracks?.length) {
+      const willEnable = !tracks[0].enabled;
+      tracks.forEach((t) => (t.enabled = willEnable));
+      setMicOn(willEnable);
+    }
   }
 
   function toggleCam() {
-    const s = localStreamRef.current;
-    if (!s) return;
-    const willEnable = !camOn;
-    s.getVideoTracks().forEach((t) => (t.enabled = willEnable));
-    setCamOn(willEnable);
+    const tracks = localStreamRef.current?.getVideoTracks();
+    if (tracks?.length) {
+      const willEnable = !tracks[0].enabled;
+      tracks.forEach((t) => (t.enabled = willEnable));
+      setCamOn(willEnable);
+    }
+  }
+
+  async function reloadLocalStream() {
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = newStream;
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = newStream;
+        localVideoRef.current.muted = true;
+        await localVideoRef.current.play().catch(() => {});
+      }
+      if (pcRef.current) {
+        const senders = pcRef.current.getSenders();
+        const audioTrack = newStream.getAudioTracks()[0];
+        const videoTrack = newStream.getVideoTracks()[0];
+        const audioSender = senders.find((s) => s.track?.kind === "audio");
+        const videoSender = senders.find((s) => s.track?.kind === "video");
+        if (audioSender && audioTrack) await audioSender.replaceTrack(audioTrack);
+        if (videoSender && videoTrack) await videoSender.replaceTrack(videoTrack);
+      }
+    } catch (err) {
+      console.error("reloadLocalStream error", err);
+    }
   }
 
   /* ---------- Chat ---------- */
@@ -309,16 +302,61 @@ export default function VideoPage({ name, gender }) {
       setInput("");
     }
   }
-
   function handleTyping(e) {
     setInput(e.target.value);
     if (partnerId) socket.emit("typing", { to: partnerId, fromName: name });
   }
 
+  /* ---------- Drag local preview ---------- */
+  function onLocalPointerDown(e) {
+    e.preventDefault();
+    draggingRef.current = true;
+    const container = remoteContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    dragStartRef.current = {
+      sx: (e.clientX ?? e.touches?.[0]?.clientX) - rect.left,
+      sy: (e.clientY ?? e.touches?.[0]?.clientY) - rect.top,
+      lx: localPos.x ?? rect.width - localSize.w - 16,
+      ly: localPos.y ?? 16,
+      cw: rect.width,
+      ch: rect.height,
+    };
+    window.addEventListener("pointermove", onLocalPointerMove);
+    window.addEventListener("pointerup", onLocalPointerUp);
+  }
+
+  function onLocalPointerMove(e) {
+    if (!draggingRef.current) return;
+    const container = remoteContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const moveX = (e.clientX ?? e.touches?.[0]?.clientX) - rect.left;
+    const moveY = (e.clientY ?? e.touches?.[0]?.clientY) - rect.top;
+    const { sx, sy, lx, ly, cw, ch } = dragStartRef.current;
+    let nx = lx + (moveX - sx);
+    let ny = ly + (moveY - sy);
+    nx = Math.max(6, Math.min(nx, cw - localSize.w - 6));
+    ny = Math.max(6, Math.min(ny, ch - localSize.h - 120));
+    setLocalPos({ x: nx, y: ny });
+  }
+
+  function onLocalPointerUp() {
+    draggingRef.current = false;
+    window.removeEventListener("pointermove", onLocalPointerMove);
+    window.removeEventListener("pointerup", onLocalPointerUp);
+  }
+
+  const previewStyle = {
+    left: localPos.x ? `${localPos.x}px` : "auto",
+    top: localPos.y ? `${localPos.y}px` : "16px",
+    right: localPos.x ? "auto" : "16px",
+    position: "absolute",
+  };
+
   /* ---------- Render ---------- */
   return (
     <div className="inapp-wrapper">
-      {showOnboarding && <OnboardingModal onContinue={handleOnboardingContinue} />}
       <div className="topbar">Online: {onlineCount} • Status: {status}</div>
 
       <div className="content">
@@ -327,33 +365,34 @@ export default function VideoPage({ name, gender }) {
           {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
           {partnerInfo && <div className="overlay green-glow">{partnerInfo.name} ({partnerInfo.gender})</div>}
 
-          <video ref={localVideoRef} className="local-video-floating green-glow" autoPlay muted playsInline />
+          <video ref={localVideoRef} className="local-video-floating green-glow" autoPlay muted playsInline onPointerDown={onLocalPointerDown} style={previewStyle} />
+
+          {/* Reload button */}
+          <button className="preview-reload" onClick={reloadLocalStream}
+            style={{
+              left: localPos.x !== null ? `${localPos.x + localSize.w - 20}px` : undefined,
+              top: localPos.y !== null ? `${localPos.y - 10}px` : undefined,
+              right: localPos.x === null ? "18px" : undefined,
+              position: "absolute",
+            }}
+            title="Reload camera"
+          >
+            ↻
+          </button>
+
+          <div className="controls centered">
+            <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic}><MicIcon active={micOn} /><div className="label">Mute</div></button>
+            <button className={`control ${camOn ? "active" : "inactive"}`} onClick={toggleCam}><CameraIcon active={camOn} /><div className="label">Camera</div></button>
+            <button className="control next"><NextIcon /><div className="label">Next</div></button>
+            <button className="control stop"><StopIcon /><div className="label">Stop</div></button>
+            {partnerId && !isBlocked && (
+              <button className="report-btn" onClick={() => setShowReportModal(true)} title="Report User">
+                <div style={{ fontSize: "22px" }}>⚠️</div><div className="label">Report</div>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Controls */}
-        <div className="controls centered">
-          <button className={`control ${micOn ? "active" : "inactive"}`} onClick={toggleMic}>
-            <MicIcon active={micOn} />
-            <div className="label">Mute</div>
-          </button>
-
-          <button className={`control ${camOn ? "active" : "inactive"}`} onClick={toggleCam}>
-            <CameraIcon active={camOn} />
-            <div className="label">Camera</div>
-          </button>
-
-          <button className="control next" onClick={handleNext}>
-            <NextIcon />
-            <div className="label">Next</div>
-          </button>
-
-          <button className="control stop" onClick={handleStop}>
-            <StopIcon />
-            <div className="label">Stop</div>
-          </button>
-        </div>
-
-        {/* Chat */}
         <div className="chat-card">
           <div className="chat-window" ref={chatWindowRef}>
             {messages.map((m, i) => (
@@ -362,11 +401,10 @@ export default function VideoPage({ name, gender }) {
                 {m.message}
               </div>
             ))}
-            {typingIndicator && <div className="chat-bubble theirs typing-bubble">{typingIndicator}</div>}
+            {typingIndicator && <TypingBubble />}
           </div>
-
           <div className="chat-input modern">
-            <input value={input} onChange={handleTyping} placeholder="Type your message" onKeyDown={(e) => e.key === "Enter" && sendChat()} />
+            <input value={input} onChange={handleTyping} placeholder="Type your message" onKeyDown={(e) => { if (e.key === "Enter") sendChat(); }} />
             <button onClick={sendChat}>Send</button>
           </div>
         </div>
@@ -378,13 +416,17 @@ export default function VideoPage({ name, gender }) {
           <div className="report-box">
             <h3>Report User</h3>
             <p>Select a reason:</p>
-            {["Nudity", "Harassment", "Spam", "Other"].map((r) => (
-              <label key={r}>
-                <input type="radio" name="reason" value={r} onChange={(e) => setReportReason(e.target.value)} />
-                {r}
-              </label>
-            ))}
-            <div>
+            <ul>
+              {["Nudity", "Harassment", "Spam", "Other"].map((reason) => (
+                <li key={reason}>
+                  <label>
+                    <input type="radio" name="reportReason" value={reason} onChange={(e) => setReportReason(e.target.value)} />
+                    {reason}
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <div className="report-actions">
               <button onClick={() => setShowReportModal(false)}>Cancel</button>
               <button
                 onClick={() => {
@@ -398,7 +440,7 @@ export default function VideoPage({ name, gender }) {
                   setShowReportModal(false);
                 }}
               >
-                Submit
+                Submit Report
               </button>
             </div>
           </div>
@@ -410,16 +452,11 @@ export default function VideoPage({ name, gender }) {
         <div className="blocked-overlay">
           <div className="blocked-box">
             <h2>🚫 You have been reported</h2>
+            <p>Avoid Nudity, Harassment, Spam, or Other violations.</p>
             <p>Please wait <strong>{blockCountdown}</strong> seconds before reconnecting.</p>
-            <button
-              onClick={() => {
-                setIsBlocked(false);
-                setBlockCountdown(60);
-                if (countdownInterval.current) clearInterval(countdownInterval.current);
-                window.location.href = "/blog";
-              }}
-            >
-              Read Blog Instead
+            <div className="or-divider">— OR —</div>
+            <button className="blog-btn" onClick={() => { setIsBlocked(false); setBlockCountdown(60); if (countdownInterval.current) clearInterval(countdownInterval.current); window.location.href = "/blog"; }}>
+              Click here to read blogs
             </button>
           </div>
         </div>
