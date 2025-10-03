@@ -8,6 +8,8 @@ import About from "./About";
 import Blog from "./Blog";
 import Contact from "./Contact";
 import "./App.css";
+import OnboardingModal from "./OnboardingModal";
+
 
 
 const socket = io(); // assumes same origin
@@ -122,6 +124,12 @@ export default function App() {
   const [blockCountdown, setBlockCountdown] = useState(60);
   const countdownInterval = useRef(null);
   const [blockedUsers, setBlockedUsers] = useState([]); // local block list
+
+  // Onboarding
+const [showOnboarding, setShowOnboarding] = useState(false);
+const [onboardingSeen, setOnboardingSeen] = useState(
+  localStorage.getItem("onboardingSeen") === "true"
+);
 
   
   // Refs
@@ -597,17 +605,22 @@ export default function App() {
                   <div className={`gender-option-vertical ${gender==="other"?"active":""}`} onClick={()=>setGender("other")}>⚧️ Other</div>
                 </div>
 
-               <button 
-  className="primary glow-button" 
-  onClick={async ()=>{ 
-    await startLocalStream(true); 
-    socket.emit("join",{name,gender}); 
-    setJoined(true); 
-    setStatus("searching"); 
+              <button
+  className="primary glow-button"
+  onClick={async () => {
+    if (!onboardingSeen) {
+      setShowOnboarding(true);  // show onboarding first time
+    } else {
+      await startLocalStream(true);
+      socket.emit("join", { name, gender });
+      setJoined(true);
+      setStatus("searching");
+    }
   }}
 >
   Connect to a stranger
 </button>
+
 
               <div className="warning-box" style={{ 
   marginTop: "20px", 
