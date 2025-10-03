@@ -342,7 +342,7 @@ body,html,#root{
 .warning-box {
   opacity: 0;
   transform: translateY(20px);
-  animation: slideFadeIn 1s ease-out forwards;
+  animation: slideFadeIn 2s ease-out forwards;
 }
 
 @keyframes slideFadeIn {
