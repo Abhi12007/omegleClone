@@ -569,7 +569,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
   /* ---------- Render ---------- */
   return (
     <Router>
-   {/* ✅ Show NavBar on all pages unless user is in a video call */}
+   {/* ✅ Show NavBar on all pages unless user is in a video call  */} 
            {!joined && <NavBar joined={joined} />}
 
       <Routes>
