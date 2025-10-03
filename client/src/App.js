@@ -601,6 +601,24 @@ export default function App() {
                   Connect to a stranger
                 </button>
 
+                 <div style={{ 
+  marginTop: "20px", 
+  padding: "12px", 
+  backgroundColor: "#ffe6e6", 
+  border: "1px solid #ff4d4d", 
+  borderRadius: "6px", 
+  color: "#cc0000", 
+  fontWeight: "bold", 
+  textAlign: "center",
+  maxWidth: "600px",
+  marginLeft: "auto",
+  marginRight: "auto"
+}}>
+  ⚠️ Important: Wakiee is a safe space for everyone. Any form of nudity, harassment, or abusive behaviour is strictly prohibited and will result in a permanent ban without warning.
+</div>
+
+{/* After this → Features Section, Talk to Stranger Section, Guidelines Section */}
+                    
                 <div className="info-section">
 
 
