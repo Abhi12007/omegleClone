@@ -96,9 +96,34 @@ body,html,#root{
 }
 
 /* gender vertical */
-.gender-vertical{display:flex;flex-direction:column;gap:12px;margin:16px 0;align-items:center}
-.gender-option-vertical{width:160px;text-align:center;padding:12px;border-radius:8px;border:2px solid transparent;background:rgba(255,255,255,0.03);color:white;cursor:pointer;font-weight:600;transition:.12s}
-.gender-option-vertical.active{border:2px solid var(--green);background:rgba(34,197,94,0.08);box-shadow:0 0 14px rgba(34,197,94,0.2)}
+.gender-vertical {
+  display: flex;
+  flex-wrap: wrap;         /* ✅ allows wrapping on small screens */
+  gap: 12px;
+  margin: 16px 0;
+  justify-content: center; /* ✅ center buttons */
+}
+
+.gender-option-vertical {
+  flex: 1 1 120px;         /* ✅ responsive width: min 120px, can grow */
+  max-width: 200px;        /* ✅ caps size on large screens */
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: rgba(255,255,255,0.03);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.12s;
+}
+
+.gender-option-vertical.active {
+  border: 2px solid var(--green);
+  background: rgba(34,197,94,0.08);
+  box-shadow: 0 0 14px rgba(34,197,94,0.2);
+}
+
 
 /* info section */
 .info-section{margin-top:40px;text-align:center;color:#dbeafe}
