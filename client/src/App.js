@@ -23,6 +23,33 @@ function NavBar({ joined }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {                      
+                         // If user is in a video call but navigates away from root (in-app), end call
+  if (joined && location.pathname !== "/") {
+    endCall();
+  }
+}, [location]); 
+
+  const endCall = () => {
+  try {
+    // Stop local video/audio
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+
+    // Inform server
+    socket.emit("leave");
+
+    // Reset state
+    setJoined(false);
+    setPartnerInfo(null);
+    setStatus("idle");
+  } catch (err) {
+    console.error("Error ending call:", err);
+  }
+};
+
+
   const showBack = location.pathname !== "/" && !joined;
 
   return (
