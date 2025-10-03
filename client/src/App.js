@@ -625,6 +625,7 @@ export default function App() {
                   <p>
                      Welcome to <strong>Wakiee</strong>, the best alternative to Omegle for meeting new people online.  
                      Our idea is simple: <strong>connect the world and help people make friends without barriers.</strong>
+                  </p> 
                   <ul style={{ listStyle: "none", padding: 0 }}>
                   <li>No registration required</li>
                   <li>No profiles or sign-ups</li>
@@ -633,7 +634,7 @@ export default function App() {
                   <li>A safe space for introverts to overcome shyness</li>
                   </ul>
                   </section>
-                  </p>
+                  
       <section id="guidelines" style={{ padding: "40px", textAlign: "center", background: "#f9f9f9" }}>
         <h3>📜Communication Guidelines</h3>
         <ul style={{ listStyle: "none", padding: 0 }}>
