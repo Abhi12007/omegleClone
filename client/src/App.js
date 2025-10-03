@@ -852,7 +852,25 @@ const [onboardingSeen, setOnboardingSeen] = useState(
                   </div>
                 </div>
               </div>
-            )}
+            )}  
+
+
+{/* Onboarding Modal */}
+{showOnboarding && (
+  <OnboardingModal
+    onContinue={async () => {
+      localStorage.setItem("onboardingSeen", "true"); // remember forever
+      setShowOnboarding(false);
+
+      // ✅ Start connection after continue
+      await startLocalStream(true);
+      socket.emit("join", { name, gender });
+      setJoined(true);
+      setStatus("searching");
+    }}
+  />
+)}
+
                {/* ⬇️ BLOCKED OVERLAY (Step 4) */}
             {isBlocked && (
                       <div className="blocked-overlay">
