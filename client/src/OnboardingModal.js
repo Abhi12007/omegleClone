@@ -38,9 +38,9 @@ function OnboardingModal({ onContinue }) {
         <ul style={{ listStyle: "none", padding: 0, lineHeight: "1.7" }}>
           <li>🎤 <strong>Mic Button:</strong> Mute or unmute your microphone.</li>
           <li>📷 <strong>Camera Button:</strong> Turn your camera on/off.</li>
-          <li>⏹️ <strong>Stop Button:</strong> End the current call.</li>
+          <li>🟥<strong>Stop Button:</strong> End the current call.</li>
           <li>⏭️ <strong>Next Button:</strong> Skip and connect to another user.</li>
-          <li>🎞️ <strong>Preview Video:</strong> The small preview video is draggable and can be reloaded by clicking the reload button on its top-right corner.</li>
+          <li> ↻ <strong>Preview Video:</strong> The small preview video is draggable and can be reloaded by clicking the reload button on its top-right corner.</li>
           <li style={{ color: "red", marginTop: "12px" }}>
             🔒 <strong>Warning:</strong> Any vulgar or offensive activity will result in a permanent ban.
           </li>
