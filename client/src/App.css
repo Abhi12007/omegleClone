@@ -8,12 +8,18 @@
   --surface: #0b1224;
   --glass: rgba(255,255,255,0.04);
 }
-.video-container {      /* for perfect fit in any device */
-  width: 100%;          /* always fill screen */
-  max-width: 1100px;    /* don’t stretch too wide on desktops */
-  margin: 0 auto;       /* center it */
-  aspect-ratio: 16 / 9; /* keeps videos proportional */
+.video-container {      
+  position: relative;     /* ✅ key: keeps overlays inside */
+  width: 100%;            /* fill available width */
+  max-width: 1100px;      /* don’t stretch too wide on desktops */
+  margin: 0 auto;         /* center horizontally */
+  aspect-ratio: 16 / 9;   /* maintain proportions */
+  overflow: hidden;       /* ✅ clip anything that tries to escape */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 
 /* base */
 body, html, #root {
