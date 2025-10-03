@@ -569,8 +569,8 @@ const [onboardingSeen, setOnboardingSeen] = useState(
   /* ---------- Render ---------- */
   return (
     <Router>
-    {/* ✅ Show NavBar on non-video pages only */}
-{location.pathname !== "/" && !joined && <NavBar joined={joined} />}
+   {/* ✅ Show NavBar on all pages unless user is in a video call */}
+           {!joined && <NavBar joined={joined} />}
 
       <Routes>
         <Route path="/about" element={<About />} />
