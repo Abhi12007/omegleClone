@@ -8,7 +8,7 @@ import About from "./About";
 import Blog from "./Blog";
 import Contact from "./Contact";
 import "./App.css";
-
+import OnboardingModal from "./OnboardingModal";
 
 const socket = io(); // assumes same origin
 
@@ -159,6 +159,23 @@ export default function App() {
   const dragStartRef = useRef({ sx: 0, sy: 0, lx: 0, ly: 0 });
 
   const chatWindowRef = useRef(null);
+
+  // ⬇️ Onboarding modal state
+const [showOnboarding, setShowOnboarding] = useState(false);
+
+useEffect(() => {
+  const hasSeen = localStorage.getItem("hasSeenInstructions");
+  if (!hasSeen) {
+    setShowOnboarding(true);
+  }
+}, []);
+
+const handleOnboardingContinue = () => {
+  localStorage.setItem("hasSeenInstructions", "true");
+  setShowOnboarding(false);
+};
+
+  
 
   /* ---------- Socket listeners ---------- */
   useEffect(() => {
@@ -571,8 +588,10 @@ export default function App() {
          {/* Landing / In-app page */}
         
         <Route path="/*" element={
-          <div className="page">    
-            
+          <div className="page"> 
+          
+           {/* ⬇️ Add this line to show onboarding */}
+    {showOnboarding && <OnboardingModal onContinue={handleOnboardingContinue} />} 
             
 
             {!joined ? (
