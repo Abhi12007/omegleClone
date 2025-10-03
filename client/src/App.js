@@ -672,8 +672,7 @@ export default function App() {
   </div>
 </footer>
 
-                  </div>
-                </footer>
+                  
               </div>
             ) : (
               /* ----- IN-APP (video + chat) ----- */
