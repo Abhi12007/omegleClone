@@ -26,12 +26,12 @@ function NavBar({ joined }) {
       <nav style={{ display: "flex", alignItems: "center", gap: "14px" }}>
         {showBack && (
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             style={{
               background: "transparent",
               border: "none",
               color: "white",
-              fontSize: "30px",
+              fontSize: "40px",
               cursor: "pointer",
             }}
             title="Go Back"
