@@ -643,7 +643,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
           <Route path="/terms" element={<Terms />} />
           <Route path="/guidelines" element={<Guidelines />} />
           <Route path="/blog" element={<BlogIndex posts={posts} />} />
-           <Route path="/blog/:slug" element={<BlogPost posts={posts} />} />
+           
          {/* Landing / In-app page */}
         
         <Route path="/*" element={
