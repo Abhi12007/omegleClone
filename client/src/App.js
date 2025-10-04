@@ -431,28 +431,43 @@ const [onboardingSeen, setOnboardingSeen] = useState(
   }
 
   /* ---------- Actions ---------- */
-  async function handleConnect() {
-    // initial connect: force mic & camera ON
-    setMicOn(true);
-    setCamOn(true);
-    storedPrefsRef.current.micOn = true;
-    storedPrefsRef.current.camOn = true;
+ async function handleConnect() {
+  // initial connect: force mic & camera ON
+  setMicOn(true);
+  setCamOn(true);
+  storedPrefsRef.current.micOn = true;
+  storedPrefsRef.current.camOn = true;
 
-    await startLocalStream(true);
+  await startLocalStream(true);
 
-    // default top-right
-    const cont = remoteContainerRef.current;
-    if (cont) {
-      const rect = cont.getBoundingClientRect();
-      const pos = { x: rect.width - localSize.w - 16, y: 16 };
-      storedPrefsRef.current.localPos = pos;
-      setLocalPos(pos);
-    }
+  // position preview inside video container safely
+  const cont = remoteContainerRef.current;
+  if (cont) {
+    const rect = cont.getBoundingClientRect();
+    const previewWidth = localSize.w;
+    const previewHeight = localSize.h;
 
-    socket.emit("join", { name, gender });
-    setJoined(true);
-    setStatus("searching");
+    // default top-right (but clamped inside container)
+    let x = rect.width - previewWidth - 16;
+    let y = 16;
+
+    // clamp values so preview never escapes
+    if (x < 0) x = 0;
+    if (x + previewWidth > rect.width) x = rect.width - previewWidth;
+    if (y < 0) y = 0;
+    if (y + previewHeight > rect.height) y = rect.height - previewHeight;
+
+    const pos = { x, y };
+    storedPrefsRef.current.localPos = pos;
+    setLocalPos(pos);
   }
+
+  socket.emit("join", { name, gender });
+  setJoined(true);
+  setStatus("searching");
+}
+
+  
 
   function handleNext() {
     storedPrefsRef.current.micOn = micOn;
