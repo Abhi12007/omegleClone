@@ -16,10 +16,6 @@ import OnboardingModal from "./OnboardingModal";
 
 
 
-
-
-
-
 const socket = io(); // assumes same origin
 
 /* ---------- NavBar Component ---------- */
@@ -649,10 +645,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
         <Route path="/*" element={
           <div className="page">    
             
-            {/* Left Navigation Bar (Desktop only) */}
-<div className="leftnav-desktop">
-  <LeftNav />
-</div>
+            
 
             {!joined ? (
               /* ----- LANDING ----- */
@@ -662,7 +655,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
                   <img src="/banner.png" alt="Banner" className="landing-banner" />
                   <div className="landing-title">
                     <h1>Wakiee</h1>
-                    <div className="sub">🟢Online: {onlineCount}</div>
+                    <div className="sub">Online: {onlineCount}</div>
                   </div>
 
                   
@@ -791,25 +784,13 @@ const [onboardingSeen, setOnboardingSeen] = useState(
             ) : (
               /* ----- IN-APP (video + chat) ----- */
               <div className="inapp-wrapper">
-                <div className="topbar">🟢Online: {onlineCount} • Status: {status}</div>
+                <div className="topbar">Online: {onlineCount} • Status: {status}</div>
 
                 <div className="content">
                   <div className="video-container" ref={remoteContainerRef}>
                     <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
                     {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
-                    {partnerInfo && partnerInfo.name && (
-  <div className="overlay green-glow">
-    {partnerInfo.name}{" "}
-    {partnerInfo?.gender === "male"
-      ? "♂️"
-      : partnerInfo?.gender === "female"
-      ? "♀️"
-      : partnerInfo?.gender === "other"
-      ? "⚧️"
-      : ""}
-  </div>
-)}
-
+                    {partnerInfo && <div className="overlay green-glow">{partnerInfo.name} ({partnerInfo.gender})</div>}
 
                     <video
                       ref={localVideoRef}
