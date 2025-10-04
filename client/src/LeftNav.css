@@ -1,9 +1,47 @@
-.leftnav-desktop {
-  display: block;
+.left-nav{
+  width: 260px;               /* adjust */
+  min-height: 100vh;
+  padding: 28px 20px;
+  box-sizing: border-box;
+  background: linear-gradient(180deg,#0f172a 0%, #071026 100%); /* subtle bg */
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  align-items: flex-start;
 }
 
-@media (max-width: 768px) {
-  .leftnav-desktop {
-    display: none; /* hide on phones/tablets */
-  }
+/* Artistic brand */
+.brand{
+  font-family: "Poppins", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-weight: 800;
+  font-size: 48px;           /* big */
+  line-height: 1;
+  letter-spacing: -1px;
+  text-transform: lowercase;
+  transform: rotate(-2deg);  /* slight tilt for style */
+  -webkit-text-stroke: 1px rgba(255,255,255,0.06); /* subtle outline */
+  background: linear-gradient(90deg, #ffd166 0%, #ff6b6b 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45));
+  margin-bottom: 6px;
 }
+
+/* smaller decorative subtitle (optional) */
+.brand::after{
+  content: "connect • chat • surprise";
+  display: block;
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  margin-top: 8px;
+  transform: none;
+  letter-spacing: 0.6px;
+}
+
+/* nav items */
+.nav-items{ list-style:none;padding:0;margin:0;width:100%;}
+.nav-items li{ padding:10px 6px;border-radius:8px; cursor:pointer; color:rgba(255,255,255,0.9); }
+.nav-items li:hover{ background: rgba(255,255,255,0.04); }
+
