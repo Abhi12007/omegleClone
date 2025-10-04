@@ -52,6 +52,27 @@ const endCall = () => {
     console.error("Error ending call:", err);
   }
 };
+ // Example blog posts array
+const posts = [
+  {
+    slug: "first-post",
+    title: "Welcome to Wakiee Blog",
+    excerpt: "Learn what's new and exciting in Wakiee!",
+    date: "2025-10-04",
+    readTime: 3,
+    coverImage: "/images/blog1.jpg",
+    content: "<p>Hey there! Welcome to our new blog section...</p>"
+  },
+  {
+    slug: "safety-tips",
+    title: "5 Safety Tips for Random Video Chats",
+    excerpt: "Stay safe and have fun while using Wakiee.",
+    date: "2025-09-28",
+    readTime: 4,
+    coverImage: "/images/blog2.jpg",
+    content: "<p>Always remember to protect your privacy online...</p>"
+  }
+];
 
 
   /*
@@ -643,6 +664,7 @@ const [onboardingSeen, setOnboardingSeen] = useState(
           <Route path="/terms" element={<Terms />} />
           <Route path="/guidelines" element={<Guidelines />} />
           <Route path="/blog" element={<BlogIndex posts={posts} />} />
+<Route path="/blog/:slug" element={<BlogPost posts={posts} />} />
            
          {/* Landing / In-app page */}
         
