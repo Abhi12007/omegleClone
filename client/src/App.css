@@ -8,80 +8,16 @@
   --surface: #0b1224;
   --glass: rgba(255,255,255,0.04);
 }
-.video-container {      /* for perfect fit in any device */
-  width: 100%;          /* always fill screen */
-  max-width: 1100px;    /* don’t stretch too wide on desktops */
-  margin: 0 auto;       /* center it */
-  aspect-ratio: 16 / 9; /* keeps videos proportional */
-}
 
 /* base */
-body, html, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+body,html,#root{
+  height:100%;
+  margin:0;
   background: radial-gradient(ellipse at top left, rgba(3,7,23,0.85), rgba(4,9,20,1));
-  font-family: Inter, system-ui, sans-serif;
-  color: #e6eef8;
-  font-size: 16px; /* default font size (mobile first) */
-
-  max-width: 100%;      /* ✅ prevent overflow beyond screen */
-  overflow-x: hidden;   /* ✅ stop sideways scrolling in Chrome mobile */
+  font-family:Inter,system-ui,sans-serif;
+  color:#e6eef8;
 }
-img, video {
-  max-width: 100%;   /* ✅ never exceed container */
-  height: auto;      /* ✅ keep proportions */
-}
-
-
-/* Tablet (≥600px) */
-@media (min-width: 600px) {
-  body {
-    font-size: 17px;
-  }
-
-  .gender-vertical {
-    flex-direction: row;    /* put in a row */
-    flex-wrap: wrap;        /* allow wrapping */
-    justify-content: center;
-  }
-
-  .gender-option-vertical {
-    flex: 1 1 40%;          /* 2 in one row */
-    max-width: 200px;
-  }
-}
-
-/* Desktop (≥1024px) */
-@media (min-width: 1024px) {
-  body {
-    font-size: 18px;
-  }
-
-  .gender-vertical {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .gender-option-vertical {
-    flex: 1 1 40%;          /* keep 2 in a row */
-    max-width: 200px;
-  }
-}
-
-
-.page {
-  min-height: 100vh;
-  padding: 0;
-  margin: 0;
-  overflow-y: auto;     /* ✅ only vertical scroll */
-  overflow-x: hidden;   /* ✅ block sideways scroll */
-  position: relative;
-  width: 100%;          /* ✅ never exceed screen width */
-  box-sizing: border-box;
-}
-
+.page{min-height:100vh;padding:0;margin:0;overflow:auto;position:relative}
 
 /* Landing header nav */
 .landing-header-nav {
@@ -153,50 +89,10 @@ img, video {
   color:white;padding:10px 16px;width:160px;border-radius:8px;border:0;cursor:pointer;margin-top:12px;font-weight:600;box-shadow:0 8px 28px rgba(37,99,235,0.12)
 }
 
-/* Default (mobile first) → vertical */
-.gender-vertical {
-  display: flex;
-  flex-direction: column;   /* ✅ stack vertically on phones */
-  gap: 12px;
-  margin: 16px 0;
-  align-items: center;
-}
-
-.gender-option-vertical {
-  width: 100%;
-  max-width: 280px;         /* ✅ keeps them neat */
-  text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background: rgba(255,255,255,0.03);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.12s;
-}
-
-/* Tablet & Desktop → 2 in one row, 1 below */
-@media (min-width: 768px) {
-  .gender-vertical {
-    flex-direction: row;    /* ✅ arrange in a row */
-    flex-wrap: wrap;        /* ✅ allow wrapping */
-    justify-content: center;
-  }
-
-  .gender-option-vertical {
-    flex: 1 1 40%;          /* ✅ roughly half width */
-    max-width: 200px;
-  }
-}
-
-
-.gender-option-vertical.active {
-  border: 2px solid var(--green);
-  background: rgba(34,197,94,0.08);
-  box-shadow: 0 0 14px rgba(34,197,94,0.2);
-}
-
+/* gender vertical */
+.gender-vertical{display:flex;flex-direction:column;gap:12px;margin:16px 0;align-items:center}
+.gender-option-vertical{width:160px;text-align:center;padding:12px;border-radius:8px;border:2px solid transparent;background:rgba(255,255,255,0.03);color:white;cursor:pointer;font-weight:600;transition:.12s}
+.gender-option-vertical.active{border:2px solid var(--green);background:rgba(34,197,94,0.08);box-shadow:0 0 14px rgba(34,197,94,0.2)}
 
 /* info section */
 .info-section{margin-top:40px;text-align:center;color:#dbeafe}
@@ -218,37 +114,22 @@ img, video {
 
 /* video layout */
 .video-container{position:relative;display:flex;flex-direction:column;align-items:center}
-.remote-video {
-  width: 100%;             /* ✅ fill the container (fits all devices) */
-  max-width: 900px;        /* ✅ cap size on desktop/laptops */
-  height: auto;            /* ✅ keeps proportions */
-  aspect-ratio: 16 / 9;    /* ✅ ensures correct video shape */
-  background: #000;
-  border-radius: 12px;
-  object-fit: cover;
-  box-shadow: 0 14px 40px rgba(2,6,23,0.7);
-  position: relative;
-  z-index: 2;
-}
+.remote-video{width:900px;height:520px;background:#000;border-radius:12px;object-fit:cover;box-shadow:0 14px 40px rgba(2,6,23,0.7);position:relative;z-index:2}
 
 /* local preview */
-.local-video-floating {
-  position: absolute;
-  width: 25%;             /* ✅ responsive: ~1/4 of container width */
-  max-width: 160px;       /* ✅ limit on desktops/laptops */
-  aspect-ratio: 4 / 3;    /* ✅ keeps correct proportions */
-  
-  border-radius: 8px;
-  border: 2px solid var(--green);
-  object-fit: cover;
-  background: #000;
-  box-shadow: 0 6px 18px rgba(34,197,94,0.18);
-  z-index: 4;
-
-  touch-action: none;
-  cursor: grab;
+.local-video-floating{
+  position:absolute;
+  width:120px;
+  height:80px;
+  border-radius:8px;
+  border:2px solid var(--green);
+  object-fit:cover;
+  background:#000;
+  box-shadow:0 6px 18px rgba(34,197,94,0.18);
+  z-index:4;
+  touch-action:none;
+  cursor:grab;
 }
-
 .local-video-floating:active{cursor:grabbing}
 
 /* reload button (round, thicker, stays within small preview) */
@@ -506,3 +387,4 @@ img, video {
     transform: translateY(0);
   }
 }
+
