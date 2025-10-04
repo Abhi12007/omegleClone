@@ -1,7 +1,7 @@
 // src/blog/BlogPost.js
 import React from "react";
 import { useParams } from "react-router-dom";
-import Sidebar from "./components/Sidebar";
+
 import "./blog.css";
 
 export default function BlogPost({ posts }) {
