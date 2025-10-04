@@ -14,6 +14,22 @@ import Guidelines from "./Guidelines";
 import "./App.css";
 import OnboardingModal from "./OnboardingModal";
 
+import "./LeftNav.css";
+
+export default function LeftNav() {
+  return (
+    <nav className="left-nav">
+      <div className="brand">wakiee</div>
+      {/* other nav items below */}
+      <ul className="nav-items">
+        <li>Home</li>
+        <li>Explore</li>
+        <li>Settings</li>
+      </ul>
+    </nav>
+  );
+}
+
 
 
 const socket = io(); // assumes same origin
