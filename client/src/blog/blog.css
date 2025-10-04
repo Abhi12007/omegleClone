@@ -1,0 +1,132 @@
+/* ================================
+   Wakiee Blog Page Styling
+   Modern look (like AirTalk)
+================================ */
+
+.blog-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  color: #111;
+  background: #fafafa;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* --- Header --- */
+.blog-header-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.blog-header-bar h1 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.blog-header-bar p {
+  color: #555;
+  margin-top: 6px;
+  font-size: 1.05rem;
+}
+
+/* --- Filter Dropdown --- */
+.header-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-filter label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.header-filter select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.header-filter select:hover {
+  border-color: #2563eb;
+}
+
+/* --- Blog Post Grid --- */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+/* --- PostCard --- */
+.post-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.post-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.post-card-body {
+  padding: 20px;
+}
+
+.post-card-body h2 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  color: #0f172a;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 12px;
+}
+
+.post-excerpt {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 16px;
+}
+
+.read-more {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+  .blog-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-filter {
+    align-self: flex-start;
+  }
+}
