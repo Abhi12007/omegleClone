@@ -329,31 +329,51 @@ const [onboardingSeen, setOnboardingSeen] = useState(
 
   /* ---------- Media & Peer ---------- */
   async function startLocalStream(forceEnable = false) {
+  try {
+    // 🔹 If we already have a local stream
     if (localStreamRef.current) {
+      // Re-enable both tracks if forced
       if (forceEnable) {
         localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = true));
         localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = true));
         setMicOn(true);
         setCamOn(true);
       }
-      return localStreamRef.current;
-    }
-    try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localStreamRef.current = s;
-      s.getAudioTracks().forEach((t) => (t.enabled = micOn));
-      s.getVideoTracks().forEach((t) => (t.enabled = camOn));
+
+      // ✅ Ensure video element gets updated stream again
       if (localVideoRef.current) {
-        localVideoRef.current.srcObject = s;
+        localVideoRef.current.srcObject = localStreamRef.current;
         localVideoRef.current.muted = true;
         await localVideoRef.current.play().catch(() => {});
       }
-      return s;
-    } catch (err) {
-      console.error("getUserMedia failed", err);
-      throw err;
+      return localStreamRef.current;
     }
+
+    // 🔹 If no stream yet, request new one
+    const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStreamRef.current = s;
+
+    // ✅ Always start with mic + cam ON
+    s.getAudioTracks().forEach((t) => (t.enabled = true));
+    s.getVideoTracks().forEach((t) => (t.enabled = true));
+
+    // ✅ Attach stream to local preview
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = s;
+      localVideoRef.current.muted = true;
+      await localVideoRef.current.play().catch(() => {});
+    }
+
+    setMicOn(true);
+    setCamOn(true);
+
+    return s;
+  } catch (err) {
+    console.error("getUserMedia failed", err);
+    throw err;
   }
+}
+
 
   function applyStoredPrefsToTracks() {
     if (!localStreamRef.current) return;
@@ -431,41 +451,45 @@ const [onboardingSeen, setOnboardingSeen] = useState(
   }
 
   /* ---------- Actions ---------- */
- async function handleConnect() {
-  // initial connect: force mic & camera ON
+async function handleConnect() {
+  // Force mic & camera ON
   setMicOn(true);
   setCamOn(true);
   storedPrefsRef.current.micOn = true;
   storedPrefsRef.current.camOn = true;
 
+  // Start local stream
   await startLocalStream(true);
 
-  // position preview inside video container safely
-  const cont = remoteContainerRef.current;
-  if (cont) {
-    const rect = cont.getBoundingClientRect();
-    const previewWidth = localSize.w;
-    const previewHeight = localSize.h;
+  // Delay a bit to ensure container layout is ready
+  setTimeout(() => {
+    const cont = remoteContainerRef.current;
+    if (cont) {
+      const rect = cont.getBoundingClientRect();
+      const previewWidth = localSize.w || 160;
+      const previewHeight = localSize.h || 120;
 
-    // default top-right (but clamped inside container)
-    let x = rect.width - previewWidth - 16;
-    let y = 16;
+      // Default top-right
+      let x = rect.width - previewWidth - 16;
+      let y = 16;
 
-    // clamp values so preview never escapes
-    if (x < 0) x = 0;
-    if (x + previewWidth > rect.width) x = rect.width - previewWidth;
-    if (y < 0) y = 0;
-    if (y + previewHeight > rect.height) y = rect.height - previewHeight;
+      // ✅ Clamp within container
+      if (x < 0) x = 0;
+      if (x + previewWidth > rect.width) x = rect.width - previewWidth;
+      if (y < 0) y = 0;
+      if (y + previewHeight > rect.height) y = rect.height - previewHeight;
 
-    const pos = { x, y };
-    storedPrefsRef.current.localPos = pos;
-    setLocalPos(pos);
-  }
+      const pos = { x, y };
+      storedPrefsRef.current.localPos = pos;
+      setLocalPos(pos);
+    }
+  }, 250); // wait 250ms to ensure container rendered
 
   socket.emit("join", { name, gender });
   setJoined(true);
   setStatus("searching");
 }
+
 
   
 
