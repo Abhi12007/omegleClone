@@ -13,7 +13,7 @@ import Guidelines from "./Guidelines";
 
 import "./App.css";
 import OnboardingModal from "./OnboardingModal";
-
+import LeftNav from "./LeftNav";
 
 
 
@@ -649,7 +649,10 @@ const [onboardingSeen, setOnboardingSeen] = useState(
         <Route path="/*" element={
           <div className="page">    
             
-            
+            {/* Left Navigation Bar (Desktop only) */}
+<div className="leftnav-desktop">
+  <LeftNav />
+</div>
 
             {!joined ? (
               /* ----- LANDING ----- */
