@@ -13,7 +13,7 @@ import Guidelines from "./Guidelines";
 
 import "./App.css";
 import OnboardingModal from "./OnboardingModal";
-import LeftNav from "./LeftNav";
+
 
 
 
