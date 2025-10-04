@@ -797,14 +797,19 @@ const [onboardingSeen, setOnboardingSeen] = useState(
                   <div className="video-container" ref={remoteContainerRef}>
                     <video ref={remoteVideoRef} className="remote-video" autoPlay playsInline />
                     {!partnerId && <div className="waiting-overlay">Waiting for user...</div>}
-                    {partnerInfo && (
+                    {partnerInfo && partnerInfo.name && (
   <div className="overlay green-glow">
     {partnerInfo.name}{" "}
-    {partnerInfo.gender === "male" ? "♂️" :
-     partnerInfo.gender === "female" ? "♀️" :
-     "⚧️"}
+    {partnerInfo?.gender === "male"
+      ? "♂️"
+      : partnerInfo?.gender === "female"
+      ? "♀️"
+      : partnerInfo?.gender === "other"
+      ? "⚧️"
+      : ""}
   </div>
 )}
+
 
                     <video
                       ref={localVideoRef}
