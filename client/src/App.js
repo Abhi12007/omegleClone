@@ -329,51 +329,31 @@ const [onboardingSeen, setOnboardingSeen] = useState(
 
   /* ---------- Media & Peer ---------- */
   async function startLocalStream(forceEnable = false) {
-  try {
-    // 🔹 If we already have a local stream
     if (localStreamRef.current) {
-      // Re-enable both tracks if forced
       if (forceEnable) {
         localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = true));
         localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = true));
         setMicOn(true);
         setCamOn(true);
       }
-
-      // ✅ Ensure video element gets updated stream again
+      return localStreamRef.current;
+    }
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localStreamRef.current = s;
+      s.getAudioTracks().forEach((t) => (t.enabled = micOn));
+      s.getVideoTracks().forEach((t) => (t.enabled = camOn));
       if (localVideoRef.current) {
-        localVideoRef.current.srcObject = localStreamRef.current;
+        localVideoRef.current.srcObject = s;
         localVideoRef.current.muted = true;
         await localVideoRef.current.play().catch(() => {});
       }
-      return localStreamRef.current;
+      return s;
+    } catch (err) {
+      console.error("getUserMedia failed", err);
+      throw err;
     }
-
-    // 🔹 If no stream yet, request new one
-    const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localStreamRef.current = s;
-
-    // ✅ Always start with mic + cam ON
-    s.getAudioTracks().forEach((t) => (t.enabled = true));
-    s.getVideoTracks().forEach((t) => (t.enabled = true));
-
-    // ✅ Attach stream to local preview
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = s;
-      localVideoRef.current.muted = true;
-      await localVideoRef.current.play().catch(() => {});
-    }
-
-    setMicOn(true);
-    setCamOn(true);
-
-    return s;
-  } catch (err) {
-    console.error("getUserMedia failed", err);
-    throw err;
   }
-}
-
 
   function applyStoredPrefsToTracks() {
     if (!localStreamRef.current) return;
@@ -451,47 +431,28 @@ const [onboardingSeen, setOnboardingSeen] = useState(
   }
 
   /* ---------- Actions ---------- */
-async function handleConnect() {
-  // Force mic & camera ON
-  setMicOn(true);
-  setCamOn(true);
-  storedPrefsRef.current.micOn = true;
-  storedPrefsRef.current.camOn = true;
+  async function handleConnect() {
+    // initial connect: force mic & camera ON
+    setMicOn(true);
+    setCamOn(true);
+    storedPrefsRef.current.micOn = true;
+    storedPrefsRef.current.camOn = true;
 
-  // Start local stream
-  await startLocalStream(true);
+    await startLocalStream(true);
 
-  // Delay a bit to ensure container layout is ready
-  setTimeout(() => {
+    // default top-right
     const cont = remoteContainerRef.current;
     if (cont) {
       const rect = cont.getBoundingClientRect();
-      const previewWidth = localSize.w || 160;
-      const previewHeight = localSize.h || 120;
-
-      // Default top-right
-      let x = rect.width - previewWidth - 16;
-      let y = 16;
-
-      // ✅ Clamp within container
-      if (x < 0) x = 0;
-      if (x + previewWidth > rect.width) x = rect.width - previewWidth;
-      if (y < 0) y = 0;
-      if (y + previewHeight > rect.height) y = rect.height - previewHeight;
-
-      const pos = { x, y };
+      const pos = { x: rect.width - localSize.w - 16, y: 16 };
       storedPrefsRef.current.localPos = pos;
       setLocalPos(pos);
     }
-  }, 250); // wait 250ms to ensure container rendered
 
-  socket.emit("join", { name, gender });
-  setJoined(true);
-  setStatus("searching");
-}
-
-
-  
+    socket.emit("join", { name, gender });
+    setJoined(true);
+    setStatus("searching");
+  }
 
   function handleNext() {
     storedPrefsRef.current.micOn = micOn;
@@ -694,7 +655,7 @@ async function handleConnect() {
                   <img src="/banner.png" alt="Banner" className="landing-banner" />
                   <div className="landing-title">
                     <h1>Wakiee</h1>
-                    <div className="sub">🟢Online: {onlineCount}</div>
+                    <div className="sub">Online: {onlineCount}</div>
                   </div>
 
                   
@@ -823,7 +784,7 @@ async function handleConnect() {
             ) : (
               /* ----- IN-APP (video + chat) ----- */
               <div className="inapp-wrapper">
-                <div className="topbar">🟢Online: {onlineCount} • Status: {status}</div>
+                <div className="topbar">Online: {onlineCount} • Status: {status}</div>
 
                 <div className="content">
                   <div className="video-container" ref={remoteContainerRef}>
