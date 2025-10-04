@@ -10,6 +10,8 @@ import Contact from "./Contact";
 import Privacy from "./Privacy";
 import Terms from "./Terms";
 import Guidelines from "./Guidelines";
+import BlogIndex from "./blog/BlogIndex";
+import BlogPost from "./blog/BlogPost";
 
 import "./App.css";
 import OnboardingModal from "./OnboardingModal";
@@ -640,6 +642,8 @@ const [onboardingSeen, setOnboardingSeen] = useState(
         <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/guidelines" element={<Guidelines />} />
+          <Route path="/blog" element={<BlogIndex posts={posts} />} />
+           <Route path="/blog/:slug" element={<BlogPost posts={posts} />} />
          {/* Landing / In-app page */}
         
         <Route path="/*" element={
