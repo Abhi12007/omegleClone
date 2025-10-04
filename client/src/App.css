@@ -8,15 +8,6 @@
   --surface: #0b1224;
   --glass: rgba(255,255,255,0.04);
 }
-.leftnav-desktop {
-  display: block;
-}
-
-@media (max-width: 768px) {
-  .leftnav-desktop {
-    display: none; /* hide on phones/tablets */
-  }
-}
 
 
 /* base */
