@@ -231,21 +231,24 @@ img, video {
   z-index: 2;
 }
 
-
 /* local preview */
-.local-video-floating{
-  position:absolute;
-  width:120px;
-  height:80px;
-  border-radius:8px;
-  border:2px solid var(--green);
-  object-fit:cover;
-  background:#000;
-  box-shadow:0 6px 18px rgba(34,197,94,0.18);
-  z-index:4;
-  touch-action:none;
-  cursor:grab;
+.local-video-floating {
+  position: absolute;
+  width: 25%;             /* ✅ responsive: ~1/4 of container width */
+  max-width: 160px;       /* ✅ limit on desktops/laptops */
+  aspect-ratio: 4 / 3;    /* ✅ keeps correct proportions */
+  
+  border-radius: 8px;
+  border: 2px solid var(--green);
+  object-fit: cover;
+  background: #000;
+  box-shadow: 0 6px 18px rgba(34,197,94,0.18);
+  z-index: 4;
+
+  touch-action: none;
+  cursor: grab;
 }
+
 .local-video-floating:active{cursor:grabbing}
 
 /* reload button (round, thicker, stays within small preview) */
